@@ -17,7 +17,42 @@
 <li><a href="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6">GDT表与段描述符</a></li>
 <li><a href="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3">段描述符详解</a></li>
 <li><a href="/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8">调用门</a></li>
+<li><a href="/2021/02/07/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8">陷阱门与中断门</a></li>
 </ul>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>陷阱门与中断门</title>
+    <url>/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/</url>
+    <content><![CDATA[<h1 id="中断的认识"><a href="#中断的认识" class="headerlink" title="中断的认识"></a>中断的认识</h1><p>在 Windows 中并没有使用调用门，但是使用了中断门。<br>中断表（IDT）中有三种中断：</p>
+<ul>
+<li>陷阱门</li>
+<li>中断门</li>
+<li>任务门<a id="more"></a>
+
+</li>
+</ul>
+<p>我们先讲陷阱门和中断门。</p>
+<p>执行中断表的各种门是通过 <code>int </code> 指令。比如著名的断点指令 <code>int 0x3</code></p>
+<h1 id="查看IDT表"><a href="#查看IDT表" class="headerlink" title="查看IDT表"></a>查看IDT表</h1><h2 id="查看IDT地址，和长度。"><a href="#查看IDT地址，和长度。" class="headerlink" title="查看IDT地址，和长度。"></a>查看IDT地址，和长度。</h2><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/1.png">
+
+<h2 id="查看内容"><a href="#查看内容" class="headerlink" title="查看内容"></a>查看内容</h2><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/2.png">
+或者
+<img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/3.png">
+
+<h1 id="中断门描述符"><a href="#中断门描述符" class="headerlink" title="中断门描述符"></a>中断门描述符</h1><p>与之前的调用门类似，但是值得注意的是没有参数。（可以通过寄存器传参）<br><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/4.png"></p>
+<h1 id="构造中断门读高地址内存"><a href="#构造中断门读高地址内存" class="headerlink" title="构造中断门读高地址内存"></a>构造中断门读高地址内存</h1><p>windbg 修改：<br>eq 8003f500 0040ee00`0008100A （0x40100A 函数地址）</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> val = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">_declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">GateFunc</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		pushad;</span><br><span class="line">		mov eax, <span class="number">0x8003f500</span>;</span><br><span class="line">		mov eax, dword ptr ds:[eax];</span><br><span class="line">		mov val, eax;</span><br><span class="line">		popad;</span><br><span class="line">		iretd;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, GateFunc);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">int</span> <span class="number">0x20</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;val: 0x%X\n&quot;</span>, val);</span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果如下：<br><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/5.png"></p>
+<h1 id="调用门返回与中断返回"><a href="#调用门返回与中断返回" class="headerlink" title="调用门返回与中断返回"></a>调用门返回与中断返回</h1><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/6.png">
+
+<h1 id="中断门使用-retf-返回"><a href="#中断门使用-retf-返回" class="headerlink" title="中断门使用 retf 返回"></a>中断门使用 retf 返回</h1><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">_declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">GateFunc</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		pop eax;	<span class="comment">// eip</span></span><br><span class="line">		pop ecx;	<span class="comment">// cs</span></span><br><span class="line">		pop edx;	<span class="comment">// eflag</span></span><br><span class="line"></span><br><span class="line">		push ecx;</span><br><span class="line">		push eax;</span><br><span class="line">		retf;</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, GateFunc);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">int</span> <span class="number">0x20</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;success\n&quot;</span>);</span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h1 id="陷阱门描述符"><a href="#陷阱门描述符" class="headerlink" title="陷阱门描述符"></a>陷阱门描述符</h1><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/7.png">
+
+<h1 id="中断门与陷阱门的区别"><a href="#中断门与陷阱门的区别" class="headerlink" title="中断门与陷阱门的区别"></a>中断门与陷阱门的区别</h1><p>中断门进入会执行 cli，此时会导致处理器忽略可屏蔽的外部中断，（清楚 EFLAG 的 IF标志）<br>陷阱门就不会。</p>
 ]]></content>
       <categories>
         <category>Windows内核研究</category>
