@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>MiFeng&#39;s Blog</title>
+  <icon>https://mifeng-super.github.io/icon.png</icon>
+  <subtitle>她似阵风我怎挽留</subtitle>
+  <link href="https://mifeng-super.github.io/atom.xml" rel="self"/>
+  
+  <link href="https://mifeng-super.github.io/"/>
+  <updated>2021-01-26T07:39:02.141Z</updated>
+  <id>https://mifeng-super.github.io/</id>
+  
+  <author>
+    <name>蜜蜂</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Hello World</title>
+    <link href="https://mifeng-super.github.io/2021/01/26/hello-world/"/>
+    <id>https://mifeng-super.github.io/2021/01/26/hello-world/</id>
+    <published>2021-01-26T07:39:02.141Z</published>
+    <updated>2021-01-26T07:39:02.141Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;Welcome to &lt;a href=&quot;https://hexo.io/&quot;&gt;Hexo&lt;/a&gt;! This is your very first post. Check &lt;a href=&quot;https://hexo.io/docs/&quot;&gt;documentation&lt;/a&gt;</summary>
+        
+      
+    
+    
+    
+    
+  </entry>
+  
+</feed>
