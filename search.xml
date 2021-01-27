@@ -14,4 +14,52 @@
 <p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
 ]]></content>
   </entry>
+  <entry>
+    <title>利用ESP8266制作WIFI杀手</title>
+    <url>/2021/01/27/%E5%88%B6%E4%BD%9CWIFI%E6%9D%80%E6%89%8B/</url>
+    <content><![CDATA[<h1 id="1、什么是ESP8266？"><a href="#1、什么是ESP8266？" class="headerlink" title="1、什么是ESP8266？"></a>1、什么是ESP8266？</h1><p>ESP8266是基于Arduino开发的单片机，简单来说就是一个WIFI物联网模块，实际应用很广。而且技术成熟，成本低廉，也就十几块钱的事。</p>
+<a id="more"></a>
+<img src="/2021/01/27/%E5%88%B6%E4%BD%9CWIFI%E6%9D%80%E6%89%8B/1.jpg" width="50%" height="50%">
+
+<h1 id="2、材料准备"><a href="#2、材料准备" class="headerlink" title="2、材料准备"></a>2、材料准备</h1><h2 id="硬件"><a href="#硬件" class="headerlink" title="硬件"></a>硬件</h2><ul>
+<li>ESP8266 NodeMCU CH340（淘宝）</li>
+<li>Micro USB 数据线</li>
+</ul>
+<h2 id="软件"><a href="#软件" class="headerlink" title="软件"></a>软件</h2><ul>
+<li>ESP8266Flasher：<a href="https://github.com/nodemcu/nodemcu-flasher">https://github.com/nodemcu/nodemcu-flasher</a> （有x32 x64两种版本根据自己的电脑系统）</li>
+<li>esp8266_deauther：<a href="https://github.com/SpacehuhnTech/esp8266_deauther/releases">https://github.com/SpacehuhnTech/esp8266_deauther/releases</a> （根据自己的需求选择对因的固件）</li>
+</ul>
+<h1 id="3、烧录固件"><a href="#3、烧录固件" class="headerlink" title="3、烧录固件"></a>3、烧录固件</h1><p>首先我们先把板子连接好，然后打开 ESP8266Flasher。</p>
+<img src="/2021/01/27/%E5%88%B6%E4%BD%9CWIFI%E6%9D%80%E6%89%8B/2.png" width="50%" height="50%">
+
+<p>打开后一般都自动识别到端口号，如果没有识别出来可以试试，重新拔插一下板子或者手动安装一下板子的驱动。（安装驱动这里就不阐述了）<br>识别到端口号后，我们就可以点击 Config 栏选择esp8266_deauther固件了。</p>
+<img src="/2021/01/27/%E5%88%B6%E4%BD%9CWIFI%E6%9D%80%E6%89%8B/3.png" width="50%" height="50%">
+
+<p>选择完固件后，我们还要到 Advanced 栏设置一下属性</p>
+<img src="/2021/01/27/%E5%88%B6%E4%BD%9CWIFI%E6%9D%80%E6%89%8B/4.png" width="50%" height="50%">
+
+<p>这样配置完，我们就可以开始烧录固件了。返回到 Operation 栏，点击 Flash，等待烧录完毕即可。（在烧录的过程中，板子上的 LED 是会闪烁的）</p>
+<img src="/2021/01/27/%E5%88%B6%E4%BD%9CWIFI%E6%9D%80%E6%89%8B/5.png" width="50%" height="50%">
+
+<p>这样就烧录完毕了</p>
+<img src="/2021/01/27/%E5%88%B6%E4%BD%9CWIFI%E6%9D%80%E6%89%8B/6.png" width="50%" height="50%">
+
+<h1 id="4、deauther-简单使用"><a href="#4、deauther-简单使用" class="headerlink" title="4、deauther 简单使用"></a>4、deauther 简单使用</h1><h2 id="入门"><a href="#入门" class="headerlink" title="入门"></a>入门</h2><ul>
+<li>扫描WIFI</li>
+<li><code>pwned</code> 使用密码连接 <code>deauther</code></li>
+<li>浏览器访问 <code>192.168.4.1</code></li>
+</ul>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><p>我们先选择一个自家的WIFI，然后点击 Attack。</p>
+<img src="/2021/01/27/%E5%88%B6%E4%BD%9CWIFI%E6%9D%80%E6%89%8B/7.png">
+
+<p>我们在 Attack 页面点击 Deauth 栏 START。  </p>
+<img src="/2021/01/27/%E5%88%B6%E4%BD%9CWIFI%E6%9D%80%E6%89%8B/8.png">
+
+<p>这样就开始攻击 WIFI。<br>Deauth 这个功能会造成当前连接WIFI的所以设备断开连接。<br>deauther 固件的其他功能，可以在 WEB 页面里自己研究一下，这里就不阐述了。</p>
+<h1 id="5、写在结尾"><a href="#5、写在结尾" class="headerlink" title="5、写在结尾"></a>5、写在结尾</h1><p>WIFI 杀手，只能自己学习研究，不能用于非法活动。切记！切记！切记！</p>
+]]></content>
+      <categories>
+        <category>ESP8266</category>
+      </categories>
+  </entry>
 </search>
