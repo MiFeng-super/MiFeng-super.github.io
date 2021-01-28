@@ -3011,3 +3011,9 @@ body {
 .post-body .note:not(.no-icon)::before {
   top: 0em;
 }
+.fa-thumb-tack:before {
+  content: "\f08d";
+}
+.post-meta-divider {
+  margin: 0 0.5em;
+}
