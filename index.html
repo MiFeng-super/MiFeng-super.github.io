@@ -425,15 +425,14 @@
     
     <div class="post-body" itemprop="articleBody">
           <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>保护模式有两大机制：段和页<br>想了解段机制就要先了解 <font color="RED">段寄存器</font></p>
-<h1 id="什么是段寄存器？有哪几个？"><a href="#什么是段寄存器？有哪几个？" class="headerlink" title="什么是段寄存器？有哪几个？"></a>什么是段寄存器？有哪几个？</h1><p>当我们用汇编读写内存的时候：<br><code> mov eax, dword ptr ds:[0x12345678], eax </code><br>这里其实读写的真实地址是：ds.base + 0x12345678</p>
-<p>ES CS SS DS FS GS LDTR TR 共8个段寄存器。</p>
-<h1 id="段寄存器结构"><a href="#段寄存器结构" class="headerlink" title="段寄存器结构"></a>段寄存器结构</h1><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">SegMent</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	WORD Selecter;     <span class="comment">//16位 Selecter    //可看见部分，通过这个字段查表读其他字段</span></span><br><span class="line">	WORD Attribute;    <span class="comment">//16位 Attribute</span></span><br><span class="line">	DWORD Base;        <span class="comment">//32位 Base</span></span><br><span class="line">	DWORD Limit;       <span class="comment">//32位 Limit</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="段寄存器的读写"><a href="#段寄存器的读写" class="headerlink" title="段寄存器的读写"></a>段寄存器的读写</h1><h2 id="读段寄存器"><a href="#读段寄存器" class="headerlink" title="读段寄存器"></a>读段寄存器</h2><p>比如：<code>mov ax, ds</code> 只能读可见的16位<br>读写LDTR的指令：SLDT/LLDT<br>读写TR的指令：  STR/LTR</p>
-<h2 id="写段寄存器"><a href="#写段寄存器" class="headerlink" title="写段寄存器"></a>写段寄存器</h2><p>比如：<code>mov ds, ax</code> 其实，也是只能写16位<br>但是，重新写入的话，段寄存器查表读到的字段就可能不一样了。</p>
-<h1 id="段选择子（SegMent-Selecter）"><a href="#段选择子（SegMent-Selecter）" class="headerlink" title="段选择子（SegMent.Selecter）"></a>段选择子（SegMent.Selecter）</h1><img src="/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
-
-<p>Selecter 的结构如上。<br>前面说到段寄存器的其他字段是通过<code>Selecter</code>查表读到的数据<br><code>Selecter.index</code> 这个值就是在表中索引（类似数组的索引）<br><code>Selecter.TI</code>    这个值说明当前的段寄存器要查哪张表（GDT / LDT，后面的文章中解释）<br><code>Selecter.RPL</code>   请求特权等级，后面的文章中解释。</p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/#more" rel="contents">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
