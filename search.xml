@@ -29,17 +29,6 @@
 ]]></content>
   </entry>
   <entry>
-    <title>什么是保护模式？</title>
-    <url>/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F/</url>
-    <content><![CDATA[<h1 id="什么是保护模式？"><a href="#什么是保护模式？" class="headerlink" title="什么是保护模式？"></a>什么是保护模式？</h1><p>x86 CPU 有三个模式。分别为：实模式、保护模式、虚拟8086模式</p>
-<h1 id="保护模式有什么特点？"><a href="#保护模式有什么特点？" class="headerlink" title="保护模式有什么特点？"></a>保护模式有什么特点？</h1><p>段机制<br>页机制</p>
-<h1 id="参考书籍"><a href="#参考书籍" class="headerlink" title="参考书籍"></a>参考书籍</h1><p>《Intel 白皮书》</p>
-]]></content>
-      <categories>
-        <category>Windows内核研究</category>
-      </categories>
-  </entry>
-  <entry>
     <title>利用ESP8266制作WIFI杀手</title>
     <url>/2021/01/27/%E5%88%B6%E4%BD%9CWIFI%E6%9D%80%E6%89%8B/</url>
     <content><![CDATA[<h1 id="什么是ESP8266？"><a href="#什么是ESP8266？" class="headerlink" title="什么是ESP8266？"></a>什么是ESP8266？</h1><p>ESP8266是基于Arduino开发的单片机，简单来说就是一个WIFI物联网模块，实际应用很广。而且技术成熟，成本低廉，也就十几块钱的事。</p>
@@ -88,6 +77,17 @@
 ]]></content>
       <categories>
         <category>ESP8266</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>什么是保护模式？</title>
+    <url>/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F/</url>
+    <content><![CDATA[<h1 id="什么是保护模式？"><a href="#什么是保护模式？" class="headerlink" title="什么是保护模式？"></a>什么是保护模式？</h1><p>x86 CPU 有三个模式。分别为：实模式、保护模式、虚拟8086模式</p>
+<h1 id="保护模式有什么特点？"><a href="#保护模式有什么特点？" class="headerlink" title="保护模式有什么特点？"></a>保护模式有什么特点？</h1><p>段机制<br>页机制</p>
+<h1 id="参考书籍"><a href="#参考书籍" class="headerlink" title="参考书籍"></a>参考书籍</h1><p>《Intel 白皮书》</p>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
       </categories>
   </entry>
   <entry>
