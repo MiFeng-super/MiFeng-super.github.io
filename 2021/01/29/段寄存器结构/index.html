@@ -21,24 +21,24 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"mifeng-super.github.io","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
+    var CONFIG = {"hostname":"mifeng.cyou","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
   </script>
 <meta name="description" content="写在前面保护模式有两大机制：段和页想了解段机制就要先了解 段寄存器">
 <meta property="og:type" content="article">
 <meta property="og:title" content="段寄存器结构">
-<meta property="og:url" content="https://mifeng-super.github.io/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/index.html">
+<meta property="og:url" content="https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/index.html">
 <meta property="og:site_name" content="MiFeng&#39;s Blog">
 <meta property="og:description" content="写在前面保护模式有两大机制：段和页想了解段机制就要先了解 段寄存器">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://mifeng-super.github.io/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
+<meta property="og:image" content="https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
 <meta property="article:published_time" content="2021-01-28T16:38:10.000Z">
-<meta property="article:modified_time" content="2021-01-28T09:37:05.278Z">
+<meta property="article:modified_time" content="2021-01-30T14:09:16.415Z">
 <meta property="article:author" content="蜜蜂">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://mifeng-super.github.io/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
+<meta name="twitter:image" content="https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
 
 
-<link rel="canonical" href="https://mifeng-super.github.io/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/">
+<link rel="canonical" href="https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/">
 
 
 <script class="page-configurations">
@@ -191,7 +191,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%9F%E6%9C%89%E5%93%AA%E5%87%A0%E4%B8%AA%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">什么是段寄存器？有哪几个？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84"><span class="nav-number">3.</span> <span class="nav-text">段寄存器结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%9A%84%E8%AF%BB%E5%86%99"><span class="nav-number">4.</span> <span class="nav-text">段寄存器的读写</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%BB%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-number">4.1.</span> <span class="nav-text">读段寄存器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%99%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-number">4.2.</span> <span class="nav-text">写段寄存器</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AE%B5%E9%80%89%E6%8B%A9%E5%AD%90%EF%BC%88SegMent-Selecter%EF%BC%89"><span class="nav-number">5.</span> <span class="nav-text">段选择子（SegMent.Selecter）</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%9F%E6%9C%89%E5%93%AA%E5%87%A0%E4%B8%AA%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">什么是段寄存器？有哪几个？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84"><span class="nav-number">3.</span> <span class="nav-text">段寄存器结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%9A%84%E8%AF%BB%E5%86%99"><span class="nav-number">4.</span> <span class="nav-text">段寄存器的读写</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%BB%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-number">4.1.</span> <span class="nav-text">读段寄存器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%99%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-number">4.2.</span> <span class="nav-text">写段寄存器</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AE%B5%E9%80%89%E6%8B%A9%E5%AD%90"><span class="nav-number">5.</span> <span class="nav-text">段选择子</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -207,7 +207,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">5</span>
+          <span class="site-state-item-count">6</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -267,7 +267,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://mifeng-super.github.io/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/">
+    <link itemprop="mainEntityOfPage" href="https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -311,7 +311,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>599</span>
+      <span>592</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -332,14 +332,14 @@
         <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>保护模式有两大机制：段和页<br>想了解段机制就要先了解 <font color="RED">段寄存器</font></p>
 <a id="more"></a>
 
-<h1 id="什么是段寄存器？有哪几个？"><a href="#什么是段寄存器？有哪几个？" class="headerlink" title="什么是段寄存器？有哪几个？"></a>什么是段寄存器？有哪几个？</h1><p>当我们用汇编读写内存的时候：<br><code> mov eax, dword ptr ds:[0x12345678], eax </code><br>这里其实读写的真实地址是：ds.base + 0x12345678</p>
+<h1 id="什么是段寄存器？有哪几个？"><a href="#什么是段寄存器？有哪几个？" class="headerlink" title="什么是段寄存器？有哪几个？"></a>什么是段寄存器？有哪几个？</h1><p>当我们用汇编读写内存的时候：<br><code> mov eax, dword ptr ds:[0x12345678], eax </code><br>这里其实读写的真实地址是：ds.base + 0x12345678，<br>但是，现在我们使用“保护模式”，内存对我们来说是平坦的。因此段寄存器的 base 都是从 0 开始的。这时的段更像做权限限制的东西。（类似R3无法访问R0的内存）。</p>
 <p>ES CS SS DS FS GS LDTR TR 共8个段寄存器。</p>
-<h1 id="段寄存器结构"><a href="#段寄存器结构" class="headerlink" title="段寄存器结构"></a>段寄存器结构</h1><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">SegMent</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	WORD Selecter;     <span class="comment">//16位 Selecter    //可看见部分，通过这个字段查表读其他字段</span></span><br><span class="line">	WORD Attribute;    <span class="comment">//16位 Attribute</span></span><br><span class="line">	DWORD Base;        <span class="comment">//32位 Base</span></span><br><span class="line">	DWORD Limit;       <span class="comment">//32位 Limit</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="段寄存器的读写"><a href="#段寄存器的读写" class="headerlink" title="段寄存器的读写"></a>段寄存器的读写</h1><h2 id="读段寄存器"><a href="#读段寄存器" class="headerlink" title="读段寄存器"></a>读段寄存器</h2><p>比如：<code>mov ax, ds</code> 只能读可见的16位<br>读写LDTR的指令：SLDT/LLDT<br>读写TR的指令：  STR/LTR</p>
-<h2 id="写段寄存器"><a href="#写段寄存器" class="headerlink" title="写段寄存器"></a>写段寄存器</h2><p>比如：<code>mov ds, ax</code> 其实，也是只能写16位<br>但是，重新写入的话，段寄存器查表读到的字段就可能不一样了。</p>
-<h1 id="段选择子（SegMent-Selecter）"><a href="#段选择子（SegMent-Selecter）" class="headerlink" title="段选择子（SegMent.Selecter）"></a>段选择子（SegMent.Selecter）</h1><img src="/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
+<h1 id="段寄存器结构"><a href="#段寄存器结构" class="headerlink" title="段寄存器结构"></a>段寄存器结构</h1><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Selecter</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	WORD Selecter;     <span class="comment">//16位 Selecter，通过这个字段查询到更多信息</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="段寄存器的读写"><a href="#段寄存器的读写" class="headerlink" title="段寄存器的读写"></a>段寄存器的读写</h1><h2 id="读段寄存器"><a href="#读段寄存器" class="headerlink" title="读段寄存器"></a>读段寄存器</h2><p>比如：<code>mov ax, ds</code><br>读写LDTR的指令：SLDT/LLDT<br>读写TR的指令：  STR/LTR</p>
+<h2 id="写段寄存器"><a href="#写段寄存器" class="headerlink" title="写段寄存器"></a>写段寄存器</h2><p>比如：<code>mov ds, ax</code><br>重新写入的话，段寄存器查表读到的字段就可能不一样了。</p>
+<h1 id="段选择子"><a href="#段选择子" class="headerlink" title="段选择子"></a>段选择子</h1><img src="/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
 
-<p>Selecter 的结构如上。<br>前面说到段寄存器的其他字段是通过<code>Selecter</code>查表读到的数据<br><code>Selecter.index</code> 这个值就是在表中索引（类似数组的索引）<br><code>Selecter.TI</code>    这个值说明当前的段寄存器要查哪张表（GDT / LDT，后面的文章中解释）<br><code>Selecter.RPL</code>   请求特权等级，后面的文章中解释。</p>
+<p>Selecter 的结构如上。<br>前面说到 “段” 还有 <code>base</code> 等等一些东西，那么只有 16 位的段选择子怎么表示这些东西呢？<br>答案就是查表，通过段选择子提供的信息查表。<br><code>Selecter.index</code> 这个值就是在表中索引（类似数组的索引）<br><code>Selecter.TI</code>    这个值说明当前的段寄存器要查哪张表（GDT / LDT，后面的文章中解释）<br><code>Selecter.RPL</code>   请求特权等级，后面的文章中解释。</p>
 
     </div>
 
@@ -359,7 +359,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://mifeng-super.github.io/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/" title="段寄存器结构">https://mifeng-super.github.io/2021/01/29/段寄存器结构/</a>
+      <a href="https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/" title="段寄存器结构">https://mifeng.cyou/2021/01/29/段寄存器结构/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -394,6 +394,9 @@
                 </a>
             </div>
             <div class="post-nav-item">
+                <a href="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/" rel="next" title="GDT表与段描述符">
+                  GDT表与段描述符 <i class="fa fa-chevron-right"></i>
+                </a>
             </div>
           </div>
     </footer>

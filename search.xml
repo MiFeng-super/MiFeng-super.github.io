@@ -8,6 +8,7 @@
 <h1 id="保护模式"><a href="#保护模式" class="headerlink" title="保护模式"></a>保护模式</h1><ul>
 <li><a href="/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F">什么是保护模式？</a></li>
 <li><a href="/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84">段寄存器结构</a></li>
+<li><a href="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6">GDT表与段描述符</a></li>
 </ul>
 ]]></content>
       <categories>
@@ -15,18 +16,55 @@
       </categories>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2021/01/26/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+    <title>GDT表与段描述符</title>
+    <url>/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/</url>
+    <content><![CDATA[<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>前面的文章中，介绍了什么是段寄存器和段选择子。接下来我们来介绍一下，怎么通过段选择子获取到其他信息（base 等等）。</p>
+<h1 id="段选择子与GDT表"><a href="#段选择子与GDT表" class="headerlink" title="段选择子与GDT表"></a>段选择子与GDT表</h1><p>通过前面的文章中，我们可以了解到段寄存器（DS….）保存是段选择子。<br>段选择子指明其他信息的位置：查哪张表，在表中的位置，段的请求权限等级</p>
+<a id="more"></a>
+<h2 id="拆分段选择子"><a href="#拆分段选择子" class="headerlink" title="拆分段选择子"></a>拆分段选择子</h2><p>我们按照段选择子的结构，进行拆分：<br><img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/1.png"></p>
+<h2 id="搜索GDT表"><a href="#搜索GDT表" class="headerlink" title="搜索GDT表"></a>搜索GDT表</h2><p>GDT表的全称 Global Descriptor Table ，全局段描述表。<br>LDT表的全称 Local  Descriptor Table ，本地段描述表（后面文章细讲）。</p>
+<p>GDT 表的地址，保存在 gdtr 寄存器中，可以在 windbg 中通过 “r gdtr” 获取地址。<br>然后我们可以通过 dq address（一个段描述符8字节 qwrod）,如果知道索引就可以直接通过公式：dq gdtr + (index * 8)。<br><img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/2.png"></p>
+<h1 id="拆分段描述符"><a href="#拆分段描述符" class="headerlink" title="拆分段描述符"></a>拆分段描述符</h1><img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/3.png">
+
+<p>这里我们挑几个重点讲，后面文章中详细解释。</p>
+<h2 id="段限长（Limit）"><a href="#段限长（Limit）" class="headerlink" title="段限长（Limit）"></a>段限长（Limit）</h2><p>仔细观察，发现 [0:15]和高字节的[16:19]是段限长，但是这里才20位，还少12位。<br>这个时候，就得用到 G 位（23）了，颗粒度。<br>如果 G == 1，那么就以 4KB 为单位。就要在 Limit 高位补 0xFFF，这样就刚刚好满 32 位。<br>如果 G == 0，原来的 Limit 就好。</p>
+<img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/4.png">
+
+<h2 id="段基址（base）"><a href="#段基址（base）" class="headerlink" title="段基址（base）"></a>段基址（base）</h2><p>这个好像没什么好讲的，就是把段描述符的 base 组合起来。<br><img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/5.png"></p>
 ]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>段寄存器结构</title>
+    <url>/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/</url>
+    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>保护模式有两大机制：段和页<br>想了解段机制就要先了解 <font color="RED">段寄存器</font></p>
+<a id="more"></a>
+
+<h1 id="什么是段寄存器？有哪几个？"><a href="#什么是段寄存器？有哪几个？" class="headerlink" title="什么是段寄存器？有哪几个？"></a>什么是段寄存器？有哪几个？</h1><p>当我们用汇编读写内存的时候：<br><code> mov eax, dword ptr ds:[0x12345678], eax </code><br>这里其实读写的真实地址是：ds.base + 0x12345678，<br>但是，现在我们使用“保护模式”，内存对我们来说是平坦的。因此段寄存器的 base 都是从 0 开始的。这时的段更像做权限限制的东西。（类似R3无法访问R0的内存）。</p>
+<p>ES CS SS DS FS GS LDTR TR 共8个段寄存器。</p>
+<h1 id="段寄存器结构"><a href="#段寄存器结构" class="headerlink" title="段寄存器结构"></a>段寄存器结构</h1><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Selecter</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	WORD Selecter;     <span class="comment">//16位 Selecter，通过这个字段查询到更多信息</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="段寄存器的读写"><a href="#段寄存器的读写" class="headerlink" title="段寄存器的读写"></a>段寄存器的读写</h1><h2 id="读段寄存器"><a href="#读段寄存器" class="headerlink" title="读段寄存器"></a>读段寄存器</h2><p>比如：<code>mov ax, ds</code><br>读写LDTR的指令：SLDT/LLDT<br>读写TR的指令：  STR/LTR</p>
+<h2 id="写段寄存器"><a href="#写段寄存器" class="headerlink" title="写段寄存器"></a>写段寄存器</h2><p>比如：<code>mov ds, ax</code><br>重新写入的话，段寄存器查表读到的字段就可能不一样了。</p>
+<h1 id="段选择子"><a href="#段选择子" class="headerlink" title="段选择子"></a>段选择子</h1><img src="/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
+
+<p>Selecter 的结构如上。<br>前面说到 “段” 还有 <code>base</code> 等等一些东西，那么只有 16 位的段选择子怎么表示这些东西呢？<br>答案就是查表，通过段选择子提供的信息查表。<br><code>Selecter.index</code> 这个值就是在表中索引（类似数组的索引）<br><code>Selecter.TI</code>    这个值说明当前的段寄存器要查哪张表（GDT / LDT，后面的文章中解释）<br><code>Selecter.RPL</code>   请求特权等级，后面的文章中解释。</p>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>什么是保护模式？</title>
+    <url>/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F/</url>
+    <content><![CDATA[<h1 id="什么是保护模式？"><a href="#什么是保护模式？" class="headerlink" title="什么是保护模式？"></a>什么是保护模式？</h1><p>x86 CPU 有三个模式。分别为：实模式、保护模式、虚拟8086模式</p>
+<h1 id="保护模式有什么特点？"><a href="#保护模式有什么特点？" class="headerlink" title="保护模式有什么特点？"></a>保护模式有什么特点？</h1><p>段机制<br>页机制</p>
+<h1 id="参考书籍"><a href="#参考书籍" class="headerlink" title="参考书籍"></a>参考书籍</h1><p>《Intel 白皮书》</p>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
   </entry>
   <entry>
     <title>利用ESP8266制作WIFI杀手</title>
@@ -80,33 +118,17 @@
       </categories>
   </entry>
   <entry>
-    <title>什么是保护模式？</title>
-    <url>/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F/</url>
-    <content><![CDATA[<h1 id="什么是保护模式？"><a href="#什么是保护模式？" class="headerlink" title="什么是保护模式？"></a>什么是保护模式？</h1><p>x86 CPU 有三个模式。分别为：实模式、保护模式、虚拟8086模式</p>
-<h1 id="保护模式有什么特点？"><a href="#保护模式有什么特点？" class="headerlink" title="保护模式有什么特点？"></a>保护模式有什么特点？</h1><p>段机制<br>页机制</p>
-<h1 id="参考书籍"><a href="#参考书籍" class="headerlink" title="参考书籍"></a>参考书籍</h1><p>《Intel 白皮书》</p>
+    <title>Hello World</title>
+    <url>/2021/01/26/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
 ]]></content>
-      <categories>
-        <category>Windows内核研究</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>段寄存器结构</title>
-    <url>/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/</url>
-    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>保护模式有两大机制：段和页<br>想了解段机制就要先了解 <font color="RED">段寄存器</font></p>
-<a id="more"></a>
-
-<h1 id="什么是段寄存器？有哪几个？"><a href="#什么是段寄存器？有哪几个？" class="headerlink" title="什么是段寄存器？有哪几个？"></a>什么是段寄存器？有哪几个？</h1><p>当我们用汇编读写内存的时候：<br><code> mov eax, dword ptr ds:[0x12345678], eax </code><br>这里其实读写的真实地址是：ds.base + 0x12345678</p>
-<p>ES CS SS DS FS GS LDTR TR 共8个段寄存器。</p>
-<h1 id="段寄存器结构"><a href="#段寄存器结构" class="headerlink" title="段寄存器结构"></a>段寄存器结构</h1><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">SegMent</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	WORD Selecter;     <span class="comment">//16位 Selecter    //可看见部分，通过这个字段查表读其他字段</span></span><br><span class="line">	WORD Attribute;    <span class="comment">//16位 Attribute</span></span><br><span class="line">	DWORD Base;        <span class="comment">//32位 Base</span></span><br><span class="line">	DWORD Limit;       <span class="comment">//32位 Limit</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="段寄存器的读写"><a href="#段寄存器的读写" class="headerlink" title="段寄存器的读写"></a>段寄存器的读写</h1><h2 id="读段寄存器"><a href="#读段寄存器" class="headerlink" title="读段寄存器"></a>读段寄存器</h2><p>比如：<code>mov ax, ds</code> 只能读可见的16位<br>读写LDTR的指令：SLDT/LLDT<br>读写TR的指令：  STR/LTR</p>
-<h2 id="写段寄存器"><a href="#写段寄存器" class="headerlink" title="写段寄存器"></a>写段寄存器</h2><p>比如：<code>mov ds, ax</code> 其实，也是只能写16位<br>但是，重新写入的话，段寄存器查表读到的字段就可能不一样了。</p>
-<h1 id="段选择子（SegMent-Selecter）"><a href="#段选择子（SegMent-Selecter）" class="headerlink" title="段选择子（SegMent.Selecter）"></a>段选择子（SegMent.Selecter）</h1><img src="/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
-
-<p>Selecter 的结构如上。<br>前面说到段寄存器的其他字段是通过<code>Selecter</code>查表读到的数据<br><code>Selecter.index</code> 这个值就是在表中索引（类似数组的索引）<br><code>Selecter.TI</code>    这个值说明当前的段寄存器要查哪张表（GDT / LDT，后面的文章中解释）<br><code>Selecter.RPL</code>   请求特权等级，后面的文章中解释。</p>
-]]></content>
-      <categories>
-        <category>Windows内核研究</category>
-      </categories>
   </entry>
 </search>

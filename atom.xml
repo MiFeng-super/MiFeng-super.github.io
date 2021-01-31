@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>MiFeng&#39;s Blog</title>
-  <icon>https://mifeng-super.github.io/icon.png</icon>
+  <icon>https://mifeng.cyou/icon.png</icon>
   <subtitle>她似阵风我怎挽留</subtitle>
-  <link href="https://mifeng-super.github.io/atom.xml" rel="self"/>
+  <link href="https://mifeng.cyou/atom.xml" rel="self"/>
   
-  <link href="https://mifeng-super.github.io/"/>
-  <updated>2021-01-28T09:37:05.278Z</updated>
-  <id>https://mifeng-super.github.io/</id>
+  <link href="https://mifeng.cyou/"/>
+  <updated>2021-01-31T05:26:25.987Z</updated>
+  <id>https://mifeng.cyou/</id>
   
   <author>
     <name>蜜蜂</name>
@@ -17,26 +17,44 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>GDT表与段描述符</title>
+    <link href="https://mifeng.cyou/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/"/>
+    <id>https://mifeng.cyou/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/</id>
+    <published>2021-01-30T21:35:58.000Z</published>
+    <updated>2021-01-31T05:26:25.987Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;介绍&quot;&gt;&lt;a href=&quot;#介绍&quot; class=&quot;headerlink&quot; title=&quot;介绍&quot;&gt;&lt;/a&gt;介绍&lt;/h1&gt;&lt;p&gt;前面的文章中，介绍了什么是段寄存器和段选择子。接下来我们来介绍一下，怎么通过段选择子获取到其他信息（base 等等）。&lt;/p&gt;
+&lt;h1 id=&quot;段选择子与GDT表&quot;&gt;&lt;a href=&quot;#段选择子与GDT表&quot; class=&quot;headerlink&quot; title=&quot;段选择子与GDT表&quot;&gt;&lt;/a&gt;段选择子与GDT表&lt;/h1&gt;&lt;p&gt;通过前面的文章中，我们可以了解到段寄存器（DS….）保存是段选择子。&lt;br&gt;段选择子指明其他信息的位置：查哪张表，在表中的位置，段的请求权限等级&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Windows内核研究" scheme="https://mifeng.cyou/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
+    
+    
+  </entry>
+  
+  <entry>
     <title>段寄存器结构</title>
-    <link href="https://mifeng-super.github.io/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/"/>
-    <id>https://mifeng-super.github.io/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/</id>
+    <link href="https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/"/>
+    <id>https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/</id>
     <published>2021-01-28T16:38:10.000Z</published>
-    <updated>2021-01-28T09:37:05.278Z</updated>
+    <updated>2021-01-30T14:09:16.415Z</updated>
     
     
     <summary type="html">&lt;h1 id=&quot;写在前面&quot;&gt;&lt;a href=&quot;#写在前面&quot; class=&quot;headerlink&quot; title=&quot;写在前面&quot;&gt;&lt;/a&gt;写在前面&lt;/h1&gt;&lt;p&gt;保护模式有两大机制：段和页&lt;br&gt;想了解段机制就要先了解 &lt;font color=&quot;RED&quot;&gt;段寄存器&lt;/font&gt;&lt;/p&gt;</summary>
     
     
     
-    <category term="Windows内核研究" scheme="https://mifeng-super.github.io/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
+    <category term="Windows内核研究" scheme="https://mifeng.cyou/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
     
     
   </entry>
   
   <entry>
     <title>什么是保护模式？</title>
-    <link href="https://mifeng-super.github.io/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F/"/>
-    <id>https://mifeng-super.github.io/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F/</id>
+    <link href="https://mifeng.cyou/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F/"/>
+    <id>https://mifeng.cyou/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F/</id>
     <published>2021-01-28T16:30:24.000Z</published>
     <updated>2021-01-28T08:36:25.827Z</updated>
     
@@ -52,32 +70,32 @@
     
     
     
-    <category term="Windows内核研究" scheme="https://mifeng-super.github.io/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
+    <category term="Windows内核研究" scheme="https://mifeng.cyou/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
     
     
   </entry>
   
   <entry>
     <title>Windows内核研究</title>
-    <link href="https://mifeng-super.github.io/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
-    <id>https://mifeng-super.github.io/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/</id>
+    <link href="https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
+    <id>https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/</id>
     <published>2021-01-28T16:10:20.000Z</published>
-    <updated>2021-01-28T08:38:27.623Z</updated>
+    <updated>2021-01-30T13:38:31.415Z</updated>
     
     
     <summary type="html">&lt;p&gt;关于 Windows 内核的学习，也学习了一段时间了，没有详细的做笔记，至此准备详细的做一下笔记，并以博客的方式分享出来。&lt;/p&gt;</summary>
     
     
     
-    <category term="Windows内核研究" scheme="https://mifeng-super.github.io/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
+    <category term="Windows内核研究" scheme="https://mifeng.cyou/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
     
     
   </entry>
   
   <entry>
     <title>利用ESP8266制作WIFI杀手</title>
-    <link href="https://mifeng-super.github.io/2021/01/27/%E5%88%B6%E4%BD%9CWIFI%E6%9D%80%E6%89%8B/"/>
-    <id>https://mifeng-super.github.io/2021/01/27/%E5%88%B6%E4%BD%9CWIFI%E6%9D%80%E6%89%8B/</id>
+    <link href="https://mifeng.cyou/2021/01/27/%E5%88%B6%E4%BD%9CWIFI%E6%9D%80%E6%89%8B/"/>
+    <id>https://mifeng.cyou/2021/01/27/%E5%88%B6%E4%BD%9CWIFI%E6%9D%80%E6%89%8B/</id>
     <published>2021-01-27T12:42:54.000Z</published>
     <updated>2021-01-28T08:20:03.592Z</updated>
     
@@ -86,15 +104,15 @@
     
     
     
-    <category term="ESP8266" scheme="https://mifeng-super.github.io/categories/ESP8266/"/>
+    <category term="ESP8266" scheme="https://mifeng.cyou/categories/ESP8266/"/>
     
     
   </entry>
   
   <entry>
     <title>Hello World</title>
-    <link href="https://mifeng-super.github.io/2021/01/26/hello-world/"/>
-    <id>https://mifeng-super.github.io/2021/01/26/hello-world/</id>
+    <link href="https://mifeng.cyou/2021/01/26/hello-world/"/>
+    <id>https://mifeng.cyou/2021/01/26/hello-world/</id>
     <published>2021-01-26T07:39:02.141Z</published>
     <updated>2021-01-28T08:08:38.810Z</updated>
     
