@@ -6,7 +6,7 @@
   <link href="https://mifeng.cyou/atom.xml" rel="self"/>
   
   <link href="https://mifeng.cyou/"/>
-  <updated>2021-01-31T05:26:25.987Z</updated>
+  <updated>2021-02-01T10:17:49.175Z</updated>
   <id>https://mifeng.cyou/</id>
   
   <author>
@@ -15,6 +15,23 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>段描述符详解</title>
+    <link href="https://mifeng.cyou/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/"/>
+    <id>https://mifeng.cyou/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/</id>
+    <published>2021-02-01T17:30:55.000Z</published>
+    <updated>2021-02-01T10:17:49.175Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;写在前面&quot;&gt;&lt;a href=&quot;#写在前面&quot; class=&quot;headerlink&quot; title=&quot;写在前面&quot;&gt;&lt;/a&gt;写在前面&lt;/h1&gt;&lt;p&gt;前面的文章中简单的介绍了“段描述符”。那么现在就介绍一下其他字段。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Windows内核研究" scheme="https://mifeng.cyou/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>GDT表与段描述符</title>
@@ -39,7 +56,7 @@
     <link href="https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/"/>
     <id>https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/</id>
     <published>2021-01-28T16:38:10.000Z</published>
-    <updated>2021-01-30T14:09:16.415Z</updated>
+    <updated>2021-02-01T10:13:43.119Z</updated>
     
     
     <summary type="html">&lt;h1 id=&quot;写在前面&quot;&gt;&lt;a href=&quot;#写在前面&quot; class=&quot;headerlink&quot; title=&quot;写在前面&quot;&gt;&lt;/a&gt;写在前面&lt;/h1&gt;&lt;p&gt;保护模式有两大机制：段和页&lt;br&gt;想了解段机制就要先了解 &lt;font color=&quot;RED&quot;&gt;段寄存器&lt;/font&gt;&lt;/p&gt;</summary>
@@ -80,7 +97,7 @@
     <link href="https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
     <id>https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/</id>
     <published>2021-01-28T16:10:20.000Z</published>
-    <updated>2021-01-30T13:38:31.415Z</updated>
+    <updated>2021-02-01T09:32:17.458Z</updated>
     
     
     <summary type="html">&lt;p&gt;关于 Windows 内核的学习，也学习了一段时间了，没有详细的做笔记，至此准备详细的做一下笔记，并以博客的方式分享出来。&lt;/p&gt;</summary>

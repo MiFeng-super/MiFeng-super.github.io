@@ -9,8 +9,43 @@
 <li><a href="/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F">什么是保护模式？</a></li>
 <li><a href="/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84">段寄存器结构</a></li>
 <li><a href="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6">GDT表与段描述符</a></li>
+<li><a href="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3">段描述符详解</a></li>
 </ul>
 ]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>段描述符详解</title>
+    <url>/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/</url>
+    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>前面的文章中简单的介绍了“段描述符”。那么现在就介绍一下其他字段。</p>
+<a id="more"></a>
+<img src="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/1.png">
+
+<h1 id="P位，S位，和-TYPE"><a href="#P位，S位，和-TYPE" class="headerlink" title="P位，S位，和 TYPE"></a>P位，S位，和 TYPE</h1><p>P位（有效位）：0 = 无效段、1 = 有效段。（查看该段是否有效，最直接的方法）<br>S位：0 = 系统段、1 = 代码段或数据段。<br>TYPE：具体作用会根据 S位 变化。<br>比如 S位 == 1，TYPE的解释：<br><img src="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/2.png"></p>
+<p>比如 S位 == 0，TYPE的解释：<br><img src="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/3.png"></p>
+<h1 id="D-B位"><a href="#D-B位" class="headerlink" title="D/B位"></a>D/B位</h1><p>代码段的时候叫：D位<br>数据段的时候叫：B位</p>
+<h2 id="对CS段（代码段）的影响"><a href="#对CS段（代码段）的影响" class="headerlink" title="对CS段（代码段）的影响"></a>对CS段（代码段）的影响</h2><ul>
+<li>D = 1，采用32位寻址方式</li>
+<li>D = 0，采用16位寻址方式</li>
+</ul>
+<h2 id="对SS段的影响"><a href="#对SS段的影响" class="headerlink" title="对SS段的影响"></a>对SS段的影响</h2><ul>
+<li>D = 1，隐式栈指令 (push pop call) 使用32位栈指针寄存器ESP</li>
+<li>D = 0，隐式栈指令 (push pop call) 使用16位栈指针寄存器SP</li>
+</ul>
+<h2 id="对向下扩展（type-E-位）的数据段"><a href="#对向下扩展（type-E-位）的数据段" class="headerlink" title="对向下扩展（type.E 位）的数据段"></a>对向下扩展（type.E 位）的数据段</h2><ul>
+<li>D = 1，Limit为 0xFFFFFFFF</li>
+<li>D = 0，Limit为 64KB</li>
+</ul>
+<h1 id="段的权限检查"><a href="#段的权限检查" class="headerlink" title="段的权限检查"></a>段的权限检查</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ul>
+<li>RPL（Request Privilege Level）请求权限级别，段选择子的后两位</li>
+<li>DPL（Descriptor Privilege Level）段描述符权限级别</li>
+<li>CPL（Current Privilege Level）当前权限级别，当前工作在CS/SS的DPL</li>
+</ul>
+<h2 id="权限检查"><a href="#权限检查" class="headerlink" title="权限检查"></a>权限检查</h2><p><code>mov ds, ax</code><br>类似这样的汇编代码，就会触发权限检查，如果不通过就赋值失败了。</p>
+<p>首先，CPL代表当前权限级别（0环或3环）。如果工作在3环，RPL就不可能是0（最高权限），这样的话就根本请求不了。<br>既时，手动把RPL改成最高权限成功发起请求，也会和段描述符的DPL检验，还是一样不通过。<br>伪代码：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 返回 true 权限检查通过</span></span><br><span class="line"><span class="keyword">if</span> (RPL &lt;= DPL)</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (CPL &lt;= DPL)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> <span class="literal">false</span>;</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Windows内核研究</category>
       </categories>
@@ -44,7 +79,7 @@
 
 <h1 id="什么是段寄存器？有哪几个？"><a href="#什么是段寄存器？有哪几个？" class="headerlink" title="什么是段寄存器？有哪几个？"></a>什么是段寄存器？有哪几个？</h1><p>当我们用汇编读写内存的时候：<br><code> mov eax, dword ptr ds:[0x12345678], eax </code><br>这里其实读写的真实地址是：ds.base + 0x12345678，<br>但是，现在我们使用“保护模式”，内存对我们来说是平坦的。因此段寄存器的 base 都是从 0 开始的。这时的段更像做权限限制的东西。（类似R3无法访问R0的内存）。</p>
 <p>ES CS SS DS FS GS LDTR TR 共8个段寄存器。</p>
-<h1 id="段寄存器结构"><a href="#段寄存器结构" class="headerlink" title="段寄存器结构"></a>段寄存器结构</h1><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Selecter</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	WORD Selecter;     <span class="comment">//16位 Selecter，通过这个字段查询到更多信息</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="段寄存器结构"><a href="#段寄存器结构" class="headerlink" title="段寄存器结构"></a>段寄存器结构</h1><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Selecter</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	WORD Selecter;     <span class="comment">//16位 Selecter，通过这个字段查询到更多信息</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h1 id="段寄存器的读写"><a href="#段寄存器的读写" class="headerlink" title="段寄存器的读写"></a>段寄存器的读写</h1><h2 id="读段寄存器"><a href="#读段寄存器" class="headerlink" title="读段寄存器"></a>读段寄存器</h2><p>比如：<code>mov ax, ds</code><br>读写LDTR的指令：SLDT/LLDT<br>读写TR的指令：  STR/LTR</p>
 <h2 id="写段寄存器"><a href="#写段寄存器" class="headerlink" title="写段寄存器"></a>写段寄存器</h2><p>比如：<code>mov ds, ax</code><br>重新写入的话，段寄存器查表读到的字段就可能不一样了。</p>
 <h1 id="段选择子"><a href="#段选择子" class="headerlink" title="段选择子"></a>段选择子</h1><img src="/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
