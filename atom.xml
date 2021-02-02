@@ -6,7 +6,7 @@
   <link href="https://mifeng.cyou/atom.xml" rel="self"/>
   
   <link href="https://mifeng.cyou/"/>
-  <updated>2021-02-01T10:17:49.175Z</updated>
+  <updated>2021-02-02T07:22:57.000Z</updated>
   <id>https://mifeng.cyou/</id>
   
   <author>
@@ -15,6 +15,23 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>调用门</title>
+    <link href="https://mifeng.cyou/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/"/>
+    <id>https://mifeng.cyou/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/</id>
+    <published>2021-02-02T13:57:36.000Z</published>
+    <updated>2021-02-02T07:22:57.000Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;如何理解调用门的-“门”-这个字？&quot;&gt;&lt;a href=&quot;#如何理解调用门的-“门”-这个字？&quot; class=&quot;headerlink&quot; title=&quot;如何理解调用门的 “门” 这个字？&quot;&gt;&lt;/a&gt;如何理解调用门的 “门” 这个字？&lt;/h1&gt;&lt;p&gt;门，通往另一个世界的通道。3环提权到0环的一个手段。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Windows内核研究" scheme="https://mifeng.cyou/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>段描述符详解</title>
@@ -97,10 +114,16 @@
     <link href="https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
     <id>https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/</id>
     <published>2021-01-28T16:10:20.000Z</published>
-    <updated>2021-02-01T09:32:17.458Z</updated>
+    <updated>2021-02-02T05:58:58.529Z</updated>
     
     
-    <summary type="html">&lt;p&gt;关于 Windows 内核的学习，也学习了一段时间了，没有详细的做笔记，至此准备详细的做一下笔记，并以博客的方式分享出来。&lt;/p&gt;</summary>
+    <summary type="html">&lt;blockquote class=&quot;blockquote-center&quot;&gt;
+&lt;p&gt;还在机场等船吗？ &lt;/p&gt;
+
+&lt;/blockquote&gt;
+&lt;hr&gt;
+
+&lt;p&gt;关于 Windows 内核的学习，也学习了一段时间了，没有详细的做笔记，至此准备详细的做一下笔记，并以博客的方式分享出来。&lt;/p&gt;</summary>
     
     
     

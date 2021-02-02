@@ -3,14 +3,59 @@
   <entry>
     <title>Windows内核研究</title>
     <url>/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/</url>
-    <content><![CDATA[<p>关于 Windows 内核的学习，也学习了一段时间了，没有详细的做笔记，至此准备详细的做一下笔记，并以博客的方式分享出来。</p>
+    <content><![CDATA[<blockquote class="blockquote-center">
+<p>还在机场等船吗？ </p>
+
+</blockquote>
+<hr>
+
+<p>关于 Windows 内核的学习，也学习了一段时间了，没有详细的做笔记，至此准备详细的做一下笔记，并以博客的方式分享出来。</p>
 <a id="more"></a>
 <h1 id="保护模式"><a href="#保护模式" class="headerlink" title="保护模式"></a>保护模式</h1><ul>
 <li><a href="/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F">什么是保护模式？</a></li>
 <li><a href="/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84">段寄存器结构</a></li>
 <li><a href="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6">GDT表与段描述符</a></li>
 <li><a href="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3">段描述符详解</a></li>
+<li><a href="/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8">调用门</a></li>
 </ul>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>调用门</title>
+    <url>/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/</url>
+    <content><![CDATA[<h1 id="如何理解调用门的-“门”-这个字？"><a href="#如何理解调用门的-“门”-这个字？" class="headerlink" title="如何理解调用门的 “门” 这个字？"></a>如何理解调用门的 “门” 这个字？</h1><p>门，通往另一个世界的通道。3环提权到0环的一个手段。</p>
+<a id="more"></a>
+
+<h1 id="如何构造调用门"><a href="#如何构造调用门" class="headerlink" title="如何构造调用门"></a>如何构造调用门</h1><img src="/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/1.png">
+
+<ul>
+<li>Segment Selector：提权后的CS段偏移</li>
+<li>Offset in Segment：提权后的EIP</li>
+</ul>
+<h1 id="调用门构造实验"><a href="#调用门构造实验" class="headerlink" title="调用门构造实验"></a>调用门构造实验</h1><p>实验目的：构造调用门，然后高权限执行调用门中指向的函数。</p>
+<p>
+windbg下对GDT表进行更改：<br>
+eq 8003f090 00cf9b00`0000ffff（代码段）<br>
+eq 8003f048 0040ec00`0090100A（调用门，指向代码段)<br>
+</p>
+
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"></span><br><span class="line">__declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">CallGate</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//int 0x3;</span></span><br><span class="line">		retf;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> buf[<span class="number">6</span>] = &#123;<span class="number">0</span>&#125;;     </span><br><span class="line">	buf[<span class="number">4</span>] = <span class="number">0x4B</span>; <span class="comment">//call cs:eip ，eip 随便填，调用门里面已经指定了</span></span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, CallGate);</span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		call fword ptr buf</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="远调用的特点"><a href="#远调用的特点" class="headerlink" title="远调用的特点"></a>远调用的特点</h1><p>call far ，当使用调用门时，就是远调用。<br>远调用，至少要保存4个值：call的返回地址 cs ss esp。<br>只要执行远call，就会切换栈。</p>
+<h1 id="调用门带参数实验"><a href="#调用门带参数实验" class="headerlink" title="调用门带参数实验"></a>调用门带参数实验</h1><p>
+修改调用门描述符：<br>
+eq 8003f048 0040ec01`0090100A</p>
+
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"></span><br><span class="line">__declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">CallGate</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//int 0x3;</span></span><br><span class="line">		retf <span class="number">0x4</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> buf[<span class="number">6</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">	buf[<span class="number">4</span>] = <span class="number">0x4B</span>;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, CallGate);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		push <span class="number">0x88888888</span></span><br><span class="line">		call fword ptr buf</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>栈结构如下：<br><img src="/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/2.png"></p>
+<p>从中可以看出，通过调用门，会有另一套堆栈，同时参数是在中间的部分。</p>
+<h1 id="调用门提权读取高地址内存"><a href="#调用门提权读取高地址内存" class="headerlink" title="调用门提权读取高地址内存"></a>调用门提权读取高地址内存</h1><p>实验目的：通过调用门提权，尝试读取高地址内存。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> val = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">__declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">CallGate</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//int 0x3;</span></span><br><span class="line">		pushad;</span><br><span class="line">		pushfd;</span><br><span class="line">		mov eax, dword ptr ds:[<span class="number">0x8003f010</span>];</span><br><span class="line">		mov val, eax;</span><br><span class="line">		popfd;</span><br><span class="line">		popad;</span><br><span class="line">		retf <span class="number">0x4</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> buf[<span class="number">6</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">	buf[<span class="number">4</span>] = <span class="number">0x4B</span>;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, CallGate);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		push <span class="number">0x88888888</span></span><br><span class="line">		call fword ptr buf</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;val: %X\n&quot;</span>, val);</span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>实验结果：<br><img src="/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/3.png"></p>
+<h1 id="调用门的权限检查"><a href="#调用门的权限检查" class="headerlink" title="调用门的权限检查"></a>调用门的权限检查</h1><p>按数值：<br>min(CPL,RPL) &gt;= 门的DPL<br>CPL &lt;= 代码段的DPL</p>
+<p>按权限：<br>max(CPL,RPL) &lt;= 门的DPL<br>CPL &gt;= 代码段的DPL</p>
 ]]></content>
       <categories>
         <category>Windows内核研究</category>
