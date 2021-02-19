@@ -17,7 +17,7 @@
 <li><a href="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6">GDT表与段描述符</a></li>
 <li><a href="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3">段描述符详解</a></li>
 <li><a href="/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8">调用门</a></li>
-<li><a href="/2021/02/07/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8">陷阱门与中断门</a></li>
+<li><a href="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8">陷阱门与中断门</a></li>
 </ul>
 ]]></content>
       <categories>
