@@ -6,7 +6,7 @@
   <link href="https://mifeng.cyou/atom.xml" rel="self"/>
   
   <link href="https://mifeng.cyou/"/>
-  <updated>2020-07-17T08:33:47.715Z</updated>
+  <updated>2021-03-02T14:14:36.680Z</updated>
   <id>https://mifeng.cyou/</id>
   
   <author>
@@ -15,6 +15,27 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>CPU异常记录</title>
+    <link href="https://mifeng.cyou/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/"/>
+    <id>https://mifeng.cyou/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/</id>
+    <published>2021-03-02T21:19:41.000Z</published>
+    <updated>2021-03-02T14:14:36.680Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;异常种类&quot;&gt;&lt;a href=&quot;#异常种类&quot; class=&quot;headerlink&quot; title=&quot;异常种类&quot;&gt;&lt;/a&gt;异常种类&lt;/h1&gt;&lt;ul&gt;
+&lt;li&gt;错误类：CPU在执行当前指令的时候，发生错误。（除零异常等等）&lt;/li&gt;
+&lt;li&gt;陷阱类：CPU已经执行完了当前指令，产生异常。（int3 TF单步等等）&lt;/li&gt;
+&lt;li&gt;终止类：一般就是不能修复的异常。在内核中就直接蓝屏了，在应用层进程就直接退出。&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    <category term="Windows内核研究" scheme="https://mifeng.cyou/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>陷阱门与中断门</title>
@@ -135,7 +156,7 @@
     <link href="https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
     <id>https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/</id>
     <published>2021-01-28T16:10:20.000Z</published>
-    <updated>2021-02-19T08:36:09.889Z</updated>
+    <updated>2021-03-02T13:22:42.507Z</updated>
     
     
     <summary type="html">&lt;blockquote class=&quot;blockquote-center&quot;&gt;
