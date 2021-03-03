@@ -24,24 +24,25 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"mifeng.cyou","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
   </script>
-<meta name="description" content="写在前面前面的文章中简单的介绍了“段描述符”。那么现在就介绍一下其他字段。">
+<meta name="description" content="写在前面软件模拟异常：这个异常不是CPU在执行的时候产生的，而且软件模拟的。C++ 中的 throw 关键字。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="段描述符详解">
-<meta property="og:url" content="https://mifeng.cyou/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:title" content="软件模拟异常记录">
+<meta property="og:url" content="https://mifeng.cyou/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/index.html">
 <meta property="og:site_name" content="MiFeng&#39;s Blog">
-<meta property="og:description" content="写在前面前面的文章中简单的介绍了“段描述符”。那么现在就介绍一下其他字段。">
+<meta property="og:description" content="写在前面软件模拟异常：这个异常不是CPU在执行的时候产生的，而且软件模拟的。C++ 中的 throw 关键字。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://mifeng.cyou/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/1.png">
-<meta property="og:image" content="https://mifeng.cyou/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/2.png">
-<meta property="og:image" content="https://mifeng.cyou/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/3.png">
-<meta property="article:published_time" content="2021-02-01T17:30:55.000Z">
-<meta property="article:modified_time" content="2021-02-01T10:17:49.175Z">
+<meta property="og:image" content="https://mifeng.cyou/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/1.png">
+<meta property="og:image" content="https://mifeng.cyou/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/2.png">
+<meta property="og:image" content="https://mifeng.cyou/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/3.png">
+<meta property="og:image" content="https://mifeng.cyou/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/4.png">
+<meta property="article:published_time" content="2021-03-04T01:04:35.000Z">
+<meta property="article:modified_time" content="2021-03-03T18:07:17.030Z">
 <meta property="article:author" content="蜜蜂">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://mifeng.cyou/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/1.png">
+<meta name="twitter:image" content="https://mifeng.cyou/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/1.png">
 
 
-<link rel="canonical" href="https://mifeng.cyou/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/">
+<link rel="canonical" href="https://mifeng.cyou/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/">
 
 
 <script class="page-configurations">
@@ -53,7 +54,7 @@
     lang   : 'zh-CN'
   };
 </script>
-<title>段描述符详解 | MiFeng's Blog</title>
+<title>软件模拟异常记录 | MiFeng's Blog</title>
   
 
 
@@ -194,7 +195,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#P%E4%BD%8D%EF%BC%8CS%E4%BD%8D%EF%BC%8C%E5%92%8C-TYPE"><span class="nav-number">2.</span> <span class="nav-text">P位，S位，和 TYPE</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#D-B%E4%BD%8D"><span class="nav-number">3.</span> <span class="nav-text">D&#x2F;B位</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9CS%E6%AE%B5%EF%BC%88%E4%BB%A3%E7%A0%81%E6%AE%B5%EF%BC%89%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-number">3.1.</span> <span class="nav-text">对CS段（代码段）的影响</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9SS%E6%AE%B5%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-number">3.2.</span> <span class="nav-text">对SS段的影响</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E5%90%91%E4%B8%8B%E6%89%A9%E5%B1%95%EF%BC%88type-E-%E4%BD%8D%EF%BC%89%E7%9A%84%E6%95%B0%E6%8D%AE%E6%AE%B5"><span class="nav-number">3.3.</span> <span class="nav-text">对向下扩展（type.E 位）的数据段</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AE%B5%E7%9A%84%E6%9D%83%E9%99%90%E6%A3%80%E6%9F%A5"><span class="nav-number">4.</span> <span class="nav-text">段的权限检查</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E5%BF%B5"><span class="nav-number">4.1.</span> <span class="nav-text">概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9D%83%E9%99%90%E6%A3%80%E6%9F%A5"><span class="nav-number">4.2.</span> <span class="nav-text">权限检查</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8"><span class="nav-number">2.</span> <span class="nav-text">软件模拟异常</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#throw%E5%8F%8D%E6%B1%87%E7%BC%96"><span class="nav-number">2.1.</span> <span class="nav-text">throw反汇编</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CxxThrowException-%E4%B8%AD%E8%B0%83%E7%94%A8-RaiseException"><span class="nav-number">2.2.</span> <span class="nav-text">__CxxThrowException 中调用 RaiseException</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RaiseException-%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90"><span class="nav-number">2.3.</span> <span class="nav-text">RaiseException 函数分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RtlRaiseException-%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90"><span class="nav-number">2.4.</span> <span class="nav-text">RtlRaiseException 函数分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZwRaiseException-%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90"><span class="nav-number">2.5.</span> <span class="nav-text">ZwRaiseException 函数分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NtRaiseException-%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90"><span class="nav-number">2.6.</span> <span class="nav-text">NtRaiseException 函数分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#KiRaiseException-%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90"><span class="nav-number">2.7.</span> <span class="nav-text">KiRaiseException 函数分析</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -270,7 +271,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://mifeng.cyou/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/">
+    <link itemprop="mainEntityOfPage" href="https://mifeng.cyou/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -283,7 +284,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          段描述符详解
+          软件模拟异常记录
         </h1>
 
         <div class="post-meta-container">
@@ -294,7 +295,7 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2021-02-01 17:30:55" itemprop="dateCreated datePublished" datetime="2021-02-01T17:30:55Z">2021-02-01</time>
+      <time title="创建时间：2021-03-04 01:04:35" itemprop="dateCreated datePublished" datetime="2021-03-04T01:04:35Z">2021-03-04</time>
 	</span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -314,7 +315,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>727</span>
+      <span>1.1k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -332,33 +333,31 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>前面的文章中简单的介绍了“段描述符”。那么现在就介绍一下其他字段。</p>
+        <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>软件模拟异常：这个异常不是CPU在执行的时候产生的，而且软件模拟的。C++ 中的 throw 关键字。</p>
 <a id="more"></a>
-<img src="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/1.png">
 
-<h1 id="P位，S位，和-TYPE"><a href="#P位，S位，和-TYPE" class="headerlink" title="P位，S位，和 TYPE"></a>P位，S位，和 TYPE</h1><p>P位（有效位）：0 = 无效段、1 = 有效段。（查看该段是否有效，最直接的方法）<br>S位：0 = 系统段、1 = 代码段或数据段。<br>TYPE：具体作用会根据 S位 变化。<br>比如 S位 == 1，TYPE的解释：<br><img src="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/2.png"></p>
-<p>比如 S位 == 0，TYPE的解释：<br><img src="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/3.png"></p>
-<h1 id="D-B位"><a href="#D-B位" class="headerlink" title="D/B位"></a>D/B位</h1><p>代码段的时候叫：D位<br>数据段的时候叫：B位</p>
-<h2 id="对CS段（代码段）的影响"><a href="#对CS段（代码段）的影响" class="headerlink" title="对CS段（代码段）的影响"></a>对CS段（代码段）的影响</h2><ul>
-<li>D = 1，采用32位寻址方式</li>
-<li>D = 0，采用16位寻址方式</li>
+<h1 id="软件模拟异常"><a href="#软件模拟异常" class="headerlink" title="软件模拟异常"></a>软件模拟异常</h1><h2 id="throw反汇编"><a href="#throw反汇编" class="headerlink" title="throw反汇编"></a>throw反汇编</h2><p>使用 throw 1，抛出异常。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">push        offset __CTA2PAD (004265d4)</span><br><span class="line">lea         eax,[ebp-4]</span><br><span class="line">push        eax</span><br><span class="line">call        __CxxThrowException@8</span><br></pre></td></tr></table></figure>
+<h2 id="CxxThrowException-中调用-RaiseException"><a href="#CxxThrowException-中调用-RaiseException" class="headerlink" title="__CxxThrowException 中调用 RaiseException"></a>__CxxThrowException 中调用 RaiseException</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mov         edx,dword ptr [ebp-20h]</span><br><span class="line">push        edx                     &#x2F;&#x2F;ExceptionCode</span><br><span class="line">call        dword ptr [__imp__RaiseException@16 (0042d1a0)]</span><br></pre></td></tr></table></figure>
+<p>其中作为 RaiseException 的第一个参数（dwExceptionCode）是编译器指定的，并不像CPU异常一样有一个固定的值（除零 C0000094）</p>
+<h2 id="RaiseException-函数分析"><a href="#RaiseException-函数分析" class="headerlink" title="RaiseException 函数分析"></a>RaiseException 函数分析</h2><p>该函数中创建 _EXCEPTION_RECORD 结构，并调用 RtlRaiseException</p>
+<img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/1.png">
+
+<h2 id="RtlRaiseException-函数分析"><a href="#RtlRaiseException-函数分析" class="headerlink" title="RtlRaiseException 函数分析"></a>RtlRaiseException 函数分析</h2><p>该函数中创建 _CONTEXT 结构保存环境，并调用 ZwRaiseException。</p>
+<img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/2.png">
+
+<h2 id="ZwRaiseException-函数分析"><a href="#ZwRaiseException-函数分析" class="headerlink" title="ZwRaiseException 函数分析"></a>ZwRaiseException 函数分析</h2><p>通过系统调用进入内核。ssdt index：0xB5</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mov     eax, 0B5h       ; NtRaiseException</span><br><span class="line">mov     edx, 7FFE0300h</span><br><span class="line">call    dword ptr [edx]</span><br><span class="line">retn    0Ch</span><br></pre></td></tr></table></figure>
+<h2 id="NtRaiseException-函数分析"><a href="#NtRaiseException-函数分析" class="headerlink" title="NtRaiseException 函数分析"></a>NtRaiseException 函数分析</h2><p>该函数的本质是 KiRaiseException。做一些初始化工作后，调用 KiRaiseException。最后通过 KiServiceExit 退出函数。<br><img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/3.png"></p>
+<h2 id="KiRaiseException-函数分析"><a href="#KiRaiseException-函数分析" class="headerlink" title="KiRaiseException 函数分析"></a>KiRaiseException 函数分析</h2><p>在该函数中，做了一些基本的判断。首先，判断先前模式R3，则把 _CONTEXT 和 _EXCEPTION_RECORD 拷贝到R0栈中（在拷贝前做了很多安全判断）；最后把 ExceptionCode 的最高位置0。<br>除零 C0000094 ，最高位为 1，则是CPU异常；而如果最高位为 0，则是软件模拟异常。<br>最后调用 KiDispatchException，至此就同CPU异常一样，进入派发函数。</p>
+<img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/4.png">
+
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ul>
+<li>CPU 发送异常时，直接在R0，而当软件模拟异常时，则多了一个R3到R0的过程，相对比较复杂。</li>
+<li>无论，CPU异常还是软件模拟异常，最后都会通过 KiDispatchException 函数派发</li>
+<li>唯一区分异常的方式：就是看 ExceptionCode 的最高位，如果为 1，则是CPU异常；如果为 0，则是软件模拟异常</li>
 </ul>
-<h2 id="对SS段的影响"><a href="#对SS段的影响" class="headerlink" title="对SS段的影响"></a>对SS段的影响</h2><ul>
-<li>D = 1，隐式栈指令 (push pop call) 使用32位栈指针寄存器ESP</li>
-<li>D = 0，隐式栈指令 (push pop call) 使用16位栈指针寄存器SP</li>
-</ul>
-<h2 id="对向下扩展（type-E-位）的数据段"><a href="#对向下扩展（type-E-位）的数据段" class="headerlink" title="对向下扩展（type.E 位）的数据段"></a>对向下扩展（type.E 位）的数据段</h2><ul>
-<li>D = 1，Limit为 0xFFFFFFFF</li>
-<li>D = 0，Limit为 64KB</li>
-</ul>
-<h1 id="段的权限检查"><a href="#段的权限检查" class="headerlink" title="段的权限检查"></a>段的权限检查</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ul>
-<li>RPL（Request Privilege Level）请求权限级别，段选择子的后两位</li>
-<li>DPL（Descriptor Privilege Level）段描述符权限级别</li>
-<li>CPL（Current Privilege Level）当前权限级别，当前工作在CS/SS的DPL</li>
-</ul>
-<h2 id="权限检查"><a href="#权限检查" class="headerlink" title="权限检查"></a>权限检查</h2><p><code>mov ds, ax</code><br>类似这样的汇编代码，就会触发权限检查，如果不通过就赋值失败了。</p>
-<p>首先，CPL代表当前权限级别（0环或3环）。如果工作在3环，RPL就不可能是0（最高权限），这样的话就根本请求不了。<br>既时，手动把RPL改成最高权限成功发起请求，也会和段描述符的DPL检验，还是一样不通过。<br>伪代码：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 返回 true 权限检查通过</span></span><br><span class="line"><span class="keyword">if</span> (RPL &lt;= DPL)</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (CPL &lt;= DPL)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> <span class="literal">false</span>;</span><br></pre></td></tr></table></figure>
+
     </div>
 
     
@@ -377,7 +376,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://mifeng.cyou/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/" title="段描述符详解">https://mifeng.cyou/2021/02/02/段描述符详解/</a>
+      <a href="https://mifeng.cyou/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/" title="软件模拟异常记录">https://mifeng.cyou/2021/03/04/软件模拟异常记录/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -407,14 +406,11 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/" rel="prev" title="GDT表与段描述符">
-                  <i class="fa fa-chevron-left"></i> GDT表与段描述符
+                <a href="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/" rel="prev" title="CPU异常记录">
+                  <i class="fa fa-chevron-left"></i> CPU异常记录
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/" rel="next" title="调用门">
-                  调用门 <i class="fa fa-chevron-right"></i>
-                </a>
             </div>
           </div>
     </footer>

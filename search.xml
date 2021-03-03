@@ -21,6 +21,39 @@
 </ul>
 <h1 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h1><ul>
 <li><a href="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95">CPU异常记录</a></li>
+<li><a href="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95">软件模拟异常记录</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>软件模拟异常记录</title>
+    <url>/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/</url>
+    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>软件模拟异常：这个异常不是CPU在执行的时候产生的，而且软件模拟的。C++ 中的 throw 关键字。</p>
+<a id="more"></a>
+
+<h1 id="软件模拟异常"><a href="#软件模拟异常" class="headerlink" title="软件模拟异常"></a>软件模拟异常</h1><h2 id="throw反汇编"><a href="#throw反汇编" class="headerlink" title="throw反汇编"></a>throw反汇编</h2><p>使用 throw 1，抛出异常。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">push        offset __CTA2PAD (004265d4)</span><br><span class="line">lea         eax,[ebp-4]</span><br><span class="line">push        eax</span><br><span class="line">call        __CxxThrowException@8</span><br></pre></td></tr></table></figure>
+<h2 id="CxxThrowException-中调用-RaiseException"><a href="#CxxThrowException-中调用-RaiseException" class="headerlink" title="__CxxThrowException 中调用 RaiseException"></a>__CxxThrowException 中调用 RaiseException</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mov         edx,dword ptr [ebp-20h]</span><br><span class="line">push        edx                     &#x2F;&#x2F;ExceptionCode</span><br><span class="line">call        dword ptr [__imp__RaiseException@16 (0042d1a0)]</span><br></pre></td></tr></table></figure>
+<p>其中作为 RaiseException 的第一个参数（dwExceptionCode）是编译器指定的，并不像CPU异常一样有一个固定的值（除零 C0000094）</p>
+<h2 id="RaiseException-函数分析"><a href="#RaiseException-函数分析" class="headerlink" title="RaiseException 函数分析"></a>RaiseException 函数分析</h2><p>该函数中创建 _EXCEPTION_RECORD 结构，并调用 RtlRaiseException</p>
+<img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/1.png">
+
+<h2 id="RtlRaiseException-函数分析"><a href="#RtlRaiseException-函数分析" class="headerlink" title="RtlRaiseException 函数分析"></a>RtlRaiseException 函数分析</h2><p>该函数中创建 _CONTEXT 结构保存环境，并调用 ZwRaiseException。</p>
+<img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/2.png">
+
+<h2 id="ZwRaiseException-函数分析"><a href="#ZwRaiseException-函数分析" class="headerlink" title="ZwRaiseException 函数分析"></a>ZwRaiseException 函数分析</h2><p>通过系统调用进入内核。ssdt index：0xB5</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mov     eax, 0B5h       ; NtRaiseException</span><br><span class="line">mov     edx, 7FFE0300h</span><br><span class="line">call    dword ptr [edx]</span><br><span class="line">retn    0Ch</span><br></pre></td></tr></table></figure>
+<h2 id="NtRaiseException-函数分析"><a href="#NtRaiseException-函数分析" class="headerlink" title="NtRaiseException 函数分析"></a>NtRaiseException 函数分析</h2><p>该函数的本质是 KiRaiseException。做一些初始化工作后，调用 KiRaiseException。最后通过 KiServiceExit 退出函数。<br><img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/3.png"></p>
+<h2 id="KiRaiseException-函数分析"><a href="#KiRaiseException-函数分析" class="headerlink" title="KiRaiseException 函数分析"></a>KiRaiseException 函数分析</h2><p>在该函数中，做了一些基本的判断。首先，判断先前模式R3，则把 _CONTEXT 和 _EXCEPTION_RECORD 拷贝到R0栈中（在拷贝前做了很多安全判断）；最后把 ExceptionCode 的最高位置0。<br>除零 C0000094 ，最高位为 1，则是CPU异常；而如果最高位为 0，则是软件模拟异常。<br>最后调用 KiDispatchException，至此就同CPU异常一样，进入派发函数。</p>
+<img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/4.png">
+
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ul>
+<li>CPU 发送异常时，直接在R0，而当软件模拟异常时，则多了一个R3到R0的过程，相对比较复杂。</li>
+<li>无论，CPU异常还是软件模拟异常，最后都会通过 KiDispatchException 函数派发</li>
+<li>唯一区分异常的方式：就是看 ExceptionCode 的最高位，如果为 1，则是CPU异常；如果为 0，则是软件模拟异常</li>
 </ul>
 ]]></content>
       <categories>
@@ -44,7 +77,7 @@
 <img src="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/1.png">
 
 <p>_EXCEPTION_RECORD 结构如下：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    LONG ExceptionCode;                                  <span class="comment">//异常Code</span></span><br><span class="line">    ULONG ExceptionFlags;                                <span class="comment">//Flags 0 = CPU异常 1 = 软件模拟异常（后面文章解释）</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span>* <span class="title">ExceptionRecord</span>;</span>           <span class="comment">//如果在异常处理中，产生异常，这里就有值了。</span></span><br><span class="line">    VOID* ExceptionAddress;                              <span class="comment">//异常地址。在CommonDispatchException函数中可以得知，异常地址 = EIP</span></span><br><span class="line">    ULONG NumberParameters;                              <span class="comment">//参数个数</span></span><br><span class="line">    ULONG ExceptionInformation[<span class="number">15</span>];                      <span class="comment">//保存参数，最多 15 个参数</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    LONG ExceptionCode;                                  <span class="comment">//异常Code</span></span><br><span class="line">    ULONG ExceptionFlags;                                <span class="comment">//Flags 1 = CPU异常 0 = 软件模拟异常（后面文章解释）</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span>* <span class="title">ExceptionRecord</span>;</span>           <span class="comment">//如果在异常处理中，产生异常，这里就有值了。</span></span><br><span class="line">    VOID* ExceptionAddress;                              <span class="comment">//异常地址。在CommonDispatchException函数中可以得知，异常地址 = EIP</span></span><br><span class="line">    ULONG NumberParameters;                              <span class="comment">//参数个数</span></span><br><span class="line">    ULONG ExceptionInformation[<span class="number">15</span>];                      <span class="comment">//保存参数，最多 15 个参数</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 <p>CommonDispatchException 函数流程图如下：</p>
 <img src="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/2.png">
 ]]></content>

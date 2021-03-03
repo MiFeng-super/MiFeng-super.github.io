@@ -6,7 +6,7 @@
   <link href="https://mifeng.cyou/atom.xml" rel="self"/>
   
   <link href="https://mifeng.cyou/"/>
-  <updated>2021-03-02T14:14:36.680Z</updated>
+  <updated>2021-03-03T18:07:17.030Z</updated>
   <id>https://mifeng.cyou/</id>
   
   <author>
@@ -17,11 +17,28 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>软件模拟异常记录</title>
+    <link href="https://mifeng.cyou/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/"/>
+    <id>https://mifeng.cyou/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/</id>
+    <published>2021-03-04T01:04:35.000Z</published>
+    <updated>2021-03-03T18:07:17.030Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;写在前面&quot;&gt;&lt;a href=&quot;#写在前面&quot; class=&quot;headerlink&quot; title=&quot;写在前面&quot;&gt;&lt;/a&gt;写在前面&lt;/h1&gt;&lt;p&gt;软件模拟异常：这个异常不是CPU在执行的时候产生的，而且软件模拟的。C++ 中的 throw 关键字。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Windows内核研究" scheme="https://mifeng.cyou/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
+    
+    
+  </entry>
+  
+  <entry>
     <title>CPU异常记录</title>
     <link href="https://mifeng.cyou/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/"/>
     <id>https://mifeng.cyou/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/</id>
     <published>2021-03-02T21:19:41.000Z</published>
-    <updated>2021-03-02T14:14:36.680Z</updated>
+    <updated>2021-03-03T17:52:59.158Z</updated>
     
     
     <summary type="html">&lt;h1 id=&quot;异常种类&quot;&gt;&lt;a href=&quot;#异常种类&quot; class=&quot;headerlink&quot; title=&quot;异常种类&quot;&gt;&lt;/a&gt;异常种类&lt;/h1&gt;&lt;ul&gt;
@@ -156,7 +173,7 @@
     <link href="https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
     <id>https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/</id>
     <published>2021-01-28T16:10:20.000Z</published>
-    <updated>2021-03-02T13:22:42.507Z</updated>
+    <updated>2021-03-03T17:05:53.001Z</updated>
     
     
     <summary type="html">&lt;blockquote class=&quot;blockquote-center&quot;&gt;
