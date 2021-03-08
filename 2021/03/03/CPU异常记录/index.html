@@ -34,7 +34,7 @@
 <meta property="og:image" content="https://mifeng.cyou/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/1.png">
 <meta property="og:image" content="https://mifeng.cyou/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/2.png">
 <meta property="article:published_time" content="2021-03-02T21:19:41.000Z">
-<meta property="article:modified_time" content="2021-03-03T17:52:59.158Z">
+<meta property="article:modified_time" content="2021-03-04T09:52:36.997Z">
 <meta property="article:author" content="蜜蜂">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://mifeng.cyou/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/1.png">
@@ -209,7 +209,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-count">12</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -345,7 +345,7 @@
 <img src="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/1.png">
 
 <p>_EXCEPTION_RECORD 结构如下：</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    LONG ExceptionCode;                                  <span class="comment">//异常Code</span></span><br><span class="line">    ULONG ExceptionFlags;                                <span class="comment">//Flags 1 = CPU异常 0 = 软件模拟异常（后面文章解释）</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span>* <span class="title">ExceptionRecord</span>;</span>           <span class="comment">//如果在异常处理中，产生异常，这里就有值了。</span></span><br><span class="line">    VOID* ExceptionAddress;                              <span class="comment">//异常地址。在CommonDispatchException函数中可以得知，异常地址 = EIP</span></span><br><span class="line">    ULONG NumberParameters;                              <span class="comment">//参数个数</span></span><br><span class="line">    ULONG ExceptionInformation[<span class="number">15</span>];                      <span class="comment">//保存参数，最多 15 个参数</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    LONG ExceptionCode;                                  <span class="comment">//异常Code</span></span><br><span class="line">    ULONG ExceptionFlags;                                <span class="comment">//Flags</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span>* <span class="title">ExceptionRecord</span>;</span>           <span class="comment">//如果在异常处理中，产生异常，这里就有值了。</span></span><br><span class="line">    VOID* ExceptionAddress;                              <span class="comment">//异常地址。在CommonDispatchException函数中可以得知，异常地址 = EIP</span></span><br><span class="line">    ULONG NumberParameters;                              <span class="comment">//参数个数</span></span><br><span class="line">    ULONG ExceptionInformation[<span class="number">15</span>];                      <span class="comment">//保存参数，最多 15 个参数</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 <p>CommonDispatchException 函数流程图如下：</p>
 <img src="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/2.png">
 

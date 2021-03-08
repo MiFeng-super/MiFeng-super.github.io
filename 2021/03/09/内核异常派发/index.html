@@ -24,18 +24,25 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"mifeng.cyou","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
   </script>
-<meta name="description" content="做笔记, 并尝试记录生活">
-<meta property="og:type" content="website">
-<meta property="og:title" content="MiFeng&#39;s Blog">
-<meta property="og:url" content="https://mifeng.cyou/archives/2021/index.html">
+<meta name="description" content="KiDispatchException 分析无论是内核发生的异常还是用户发生的异常，最终都会走到 KiDispatchException 中派发。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内核异常派发">
+<meta property="og:url" content="https://mifeng.cyou/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/index.html">
 <meta property="og:site_name" content="MiFeng&#39;s Blog">
-<meta property="og:description" content="做笔记, 并尝试记录生活">
+<meta property="og:description" content="KiDispatchException 分析无论是内核发生的异常还是用户发生的异常，最终都会走到 KiDispatchException 中派发。">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mifeng.cyou/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/1.png">
+<meta property="og:image" content="https://mifeng.cyou/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/2.png">
+<meta property="og:image" content="https://mifeng.cyou/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/3.png">
+<meta property="og:image" content="https://mifeng.cyou/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/4.png">
+<meta property="article:published_time" content="2021-03-08T16:36:38.000Z">
+<meta property="article:modified_time" content="2021-03-08T10:56:31.901Z">
 <meta property="article:author" content="蜜蜂">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mifeng.cyou/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/1.png">
 
 
-<link rel="canonical" href="https://mifeng.cyou/archives/2021/">
+<link rel="canonical" href="https://mifeng.cyou/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/">
 
 
 <script class="page-configurations">
@@ -43,11 +50,11 @@
   CONFIG.page = {
     sidebar: "",
     isHome : false,
-    isPost : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
-<title>归档 | MiFeng's Blog</title>
+<title>内核异常派发 | MiFeng's Blog</title>
   
 
 
@@ -175,7 +182,7 @@
 
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           文章目录
@@ -188,6 +195,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#KiDispatchException-%E5%88%86%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">KiDispatchException 分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BB%E9%80%BB%E8%BE%91%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">主逻辑分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#RtlDispatchException-%E5%88%86%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">RtlDispatchException 分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -252,232 +260,155 @@
 </noscript>
 
 
-    <div class="main-inner archive posts-collapse">
+    <div class="main-inner post posts-expand">
 
 
   
+
+
+<div class="post-block">
   
   
-  <div class="post-block">
-    <div class="post-content">
-      <div class="collection-title">
-        <span class="collection-header">嗯..! 目前共计 12 篇日志。 继续努力。</span>
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://mifeng.cyou/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="蜜蜂">
+      <meta itemprop="description" content="做笔记, 并尝试记录生活">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="MiFeng's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          内核异常派发
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-03-08 16:36:38" itemprop="dateCreated datePublished" datetime="2021-03-08T16:36:38Z">2021-03-08</time>
+	</span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/" itemprop="url" rel="index"><span itemprop="name">Windows内核研究</span></a>
+        </span>
+    </span>
+
+  
       </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>532</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
 
-      
-    <div class="collection-year">
-      <span class="collection-header">2021</span>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="KiDispatchException-分析"><a href="#KiDispatchException-分析" class="headerlink" title="KiDispatchException 分析"></a>KiDispatchException 分析</h1><p>无论是内核发生的异常还是用户发生的异常，最终都会走到 KiDispatchException 中派发。</p>
+<a id="more"></a>
+
+<img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/1.png">
+
+<h1 id="主逻辑分析"><a href="#主逻辑分析" class="headerlink" title="主逻辑分析"></a>主逻辑分析</h1><img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/2.png">
+
+<h1 id="RtlDispatchException-分析"><a href="#RtlDispatchException-分析" class="headerlink" title="RtlDispatchException 分析"></a>RtlDispatchException 分析</h1><p>_KPCR + 0x0 中是一个 ExceptionList，里面是一个链表。_EXCEPTION_REGISTRATION_ROCRD 里面有一个异常处理函数。<br><img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/3.png"></p>
+<p>其中，异常处理函数的返回值为 _EXCEPTION_DISPOSITION ，来判断异常处理结果。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span> _<span class="title">EXCEPTION_DISPOSITION</span> &#123;</span></span><br><span class="line">    ExceptionContinueExecution,   <span class="comment">//异常处理成功</span></span><br><span class="line">    ExceptionContinueSearch,      <span class="comment">//异常没有处理，继续寻找</span></span><br><span class="line">    ExceptionNestedException,     <span class="comment">//二次异常，存在嵌套异常</span></span><br><span class="line">    ExceptionCollidedUnwind       <span class="comment">//发生嵌套的展开</span></span><br><span class="line">&#125; EXCEPTION_DISPOSITION;</span><br></pre></td></tr></table></figure>
+<p>RtlDispatchException 核心就是遍历这张链表，执行处理函数。<br><img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/4.png"></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>在内核发生异常，处理起来比较简单。不用返回到三环处理。<br>KiDispatchException 的处理逻辑也比较清晰。</p>
+
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2021-03-08T16:36:38Z"
-              content="2021-03-08">
-          03-08
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/" itemprop="url">
-            <span itemprop="name">内核异常派发</span>
-          </a>
-      </div>
-
+    
+    
+    
       
-    </header>
-  </article>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2021-03-04T01:04:35Z"
-              content="2021-03-04">
-          03-04
-        </time>
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>蜜蜂
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://mifeng.cyou/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/" title="内核异常派发">https://mifeng.cyou/2021/03/09/内核异常派发/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+        <a target="_blank" class="social-link" href="/atom.xml">
+          <span class="icon">
+            <i class="fa fa-rss"></i>
+          </span>
+
+          <span class="label">RSS</span>
+        </a>
       </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/" itemprop="url">
-            <span itemprop="name">软件模拟异常记录</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2021-03-02T21:19:41Z"
-              content="2021-03-02">
-          03-02
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/" itemprop="url">
-            <span itemprop="name">CPU异常记录</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2021-02-08T11:50:37Z"
-              content="2021-02-08">
-          02-08
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/" itemprop="url">
-            <span itemprop="name">陷阱门与中断门</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2021-02-02T13:57:36Z"
-              content="2021-02-02">
-          02-02
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/" itemprop="url">
-            <span itemprop="name">调用门</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2021-02-01T17:30:55Z"
-              content="2021-02-01">
-          02-01
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/" itemprop="url">
-            <span itemprop="name">段描述符详解</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2021-01-30T21:35:58Z"
-              content="2021-01-30">
-          01-30
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/" itemprop="url">
-            <span itemprop="name">GDT表与段描述符</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2021-01-28T16:38:10Z"
-              content="2021-01-28">
-          01-28
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/" itemprop="url">
-            <span itemprop="name">段寄存器结构</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2021-01-28T16:30:24Z"
-              content="2021-01-28">
-          01-28
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F/" itemprop="url">
-            <span itemprop="name">什么是保护模式？</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2021-01-28T16:10:20Z"
-              content="2021-01-28">
-          01-28
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/" itemprop="url">
-            <span itemprop="name">Windows内核研究</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-
-    </div>
   </div>
-  
-  
-  
-  <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/archives/2021/page/2/">2</a><a class="extend next" rel="next" href="/archives/2021/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
-  </nav>
+</div>
+
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/" rel="prev" title="软件模拟异常记录">
+                  <i class="fa fa-chevron-left"></i> 软件模拟异常记录
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
 
 
 <script>

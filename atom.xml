@@ -6,7 +6,7 @@
   <link href="https://mifeng.cyou/atom.xml" rel="self"/>
   
   <link href="https://mifeng.cyou/"/>
-  <updated>2021-03-03T18:07:17.030Z</updated>
+  <updated>2021-03-08T10:56:31.901Z</updated>
   <id>https://mifeng.cyou/</id>
   
   <author>
@@ -15,6 +15,23 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>内核异常派发</title>
+    <link href="https://mifeng.cyou/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/"/>
+    <id>https://mifeng.cyou/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/</id>
+    <published>2021-03-08T16:36:38.000Z</published>
+    <updated>2021-03-08T10:56:31.901Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;KiDispatchException-分析&quot;&gt;&lt;a href=&quot;#KiDispatchException-分析&quot; class=&quot;headerlink&quot; title=&quot;KiDispatchException 分析&quot;&gt;&lt;/a&gt;KiDispatchException 分析&lt;/h1&gt;&lt;p&gt;无论是内核发生的异常还是用户发生的异常，最终都会走到 KiDispatchException 中派发。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Windows内核研究" scheme="https://mifeng.cyou/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>软件模拟异常记录</title>
@@ -38,7 +55,7 @@
     <link href="https://mifeng.cyou/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/"/>
     <id>https://mifeng.cyou/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/</id>
     <published>2021-03-02T21:19:41.000Z</published>
-    <updated>2021-03-03T17:52:59.158Z</updated>
+    <updated>2021-03-04T09:52:36.997Z</updated>
     
     
     <summary type="html">&lt;h1 id=&quot;异常种类&quot;&gt;&lt;a href=&quot;#异常种类&quot; class=&quot;headerlink&quot; title=&quot;异常种类&quot;&gt;&lt;/a&gt;异常种类&lt;/h1&gt;&lt;ul&gt;
@@ -173,7 +190,7 @@
     <link href="https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
     <id>https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/</id>
     <published>2021-01-28T16:10:20.000Z</published>
-    <updated>2021-03-03T17:05:53.001Z</updated>
+    <updated>2021-03-08T08:37:40.961Z</updated>
     
     
     <summary type="html">&lt;blockquote class=&quot;blockquote-center&quot;&gt;

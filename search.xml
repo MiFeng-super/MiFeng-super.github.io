@@ -22,7 +22,28 @@
 <h1 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h1><ul>
 <li><a href="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95">CPU异常记录</a></li>
 <li><a href="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95">软件模拟异常记录</a></li>
+<li><a href="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91">内核异常派发</a></li>
 </ul>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>内核异常派发</title>
+    <url>/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/</url>
+    <content><![CDATA[<h1 id="KiDispatchException-分析"><a href="#KiDispatchException-分析" class="headerlink" title="KiDispatchException 分析"></a>KiDispatchException 分析</h1><p>无论是内核发生的异常还是用户发生的异常，最终都会走到 KiDispatchException 中派发。</p>
+<a id="more"></a>
+
+<img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/1.png">
+
+<h1 id="主逻辑分析"><a href="#主逻辑分析" class="headerlink" title="主逻辑分析"></a>主逻辑分析</h1><img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/2.png">
+
+<h1 id="RtlDispatchException-分析"><a href="#RtlDispatchException-分析" class="headerlink" title="RtlDispatchException 分析"></a>RtlDispatchException 分析</h1><p>_KPCR + 0x0 中是一个 ExceptionList，里面是一个链表。_EXCEPTION_REGISTRATION_ROCRD 里面有一个异常处理函数。<br><img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/3.png"></p>
+<p>其中，异常处理函数的返回值为 _EXCEPTION_DISPOSITION ，来判断异常处理结果。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span> _<span class="title">EXCEPTION_DISPOSITION</span> &#123;</span></span><br><span class="line">    ExceptionContinueExecution,   <span class="comment">//异常处理成功</span></span><br><span class="line">    ExceptionContinueSearch,      <span class="comment">//异常没有处理，继续寻找</span></span><br><span class="line">    ExceptionNestedException,     <span class="comment">//二次异常，存在嵌套异常</span></span><br><span class="line">    ExceptionCollidedUnwind       <span class="comment">//发生嵌套的展开</span></span><br><span class="line">&#125; EXCEPTION_DISPOSITION;</span><br></pre></td></tr></table></figure>
+<p>RtlDispatchException 核心就是遍历这张链表，执行处理函数。<br><img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/4.png"></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>在内核发生异常，处理起来比较简单。不用返回到三环处理。<br>KiDispatchException 的处理逻辑也比较清晰。</p>
 ]]></content>
       <categories>
         <category>Windows内核研究</category>
@@ -77,7 +98,7 @@
 <img src="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/1.png">
 
 <p>_EXCEPTION_RECORD 结构如下：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    LONG ExceptionCode;                                  <span class="comment">//异常Code</span></span><br><span class="line">    ULONG ExceptionFlags;                                <span class="comment">//Flags 1 = CPU异常 0 = 软件模拟异常（后面文章解释）</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span>* <span class="title">ExceptionRecord</span>;</span>           <span class="comment">//如果在异常处理中，产生异常，这里就有值了。</span></span><br><span class="line">    VOID* ExceptionAddress;                              <span class="comment">//异常地址。在CommonDispatchException函数中可以得知，异常地址 = EIP</span></span><br><span class="line">    ULONG NumberParameters;                              <span class="comment">//参数个数</span></span><br><span class="line">    ULONG ExceptionInformation[<span class="number">15</span>];                      <span class="comment">//保存参数，最多 15 个参数</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    LONG ExceptionCode;                                  <span class="comment">//异常Code</span></span><br><span class="line">    ULONG ExceptionFlags;                                <span class="comment">//Flags</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span>* <span class="title">ExceptionRecord</span>;</span>           <span class="comment">//如果在异常处理中，产生异常，这里就有值了。</span></span><br><span class="line">    VOID* ExceptionAddress;                              <span class="comment">//异常地址。在CommonDispatchException函数中可以得知，异常地址 = EIP</span></span><br><span class="line">    ULONG NumberParameters;                              <span class="comment">//参数个数</span></span><br><span class="line">    ULONG ExceptionInformation[<span class="number">15</span>];                      <span class="comment">//保存参数，最多 15 个参数</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 <p>CommonDispatchException 函数流程图如下：</p>
 <img src="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/2.png">
 ]]></content>
