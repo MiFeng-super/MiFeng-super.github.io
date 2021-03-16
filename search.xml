@@ -23,7 +23,32 @@
 <li><a href="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95">CPU异常记录</a></li>
 <li><a href="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95">软件模拟异常记录</a></li>
 <li><a href="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91">内核异常派发</a></li>
+<li><a href="/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91">用户异常派发</a></li>
 </ul>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>用户异常派发</title>
+    <url>/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/</url>
+    <content><![CDATA[<p>用户层发生异常时，处理函数在用户层，这时就要从内核层返回用户层处理。相比内核发生异常，处理起来要麻烦一些。<br>异常返回用户层和用户APC返回用户层处理流程大体上相同，只不过，到用户层的EIP不一样。<br>用户层APC：KiUserApcDispatcher，用户层异常：KiUserDispatchDispatcher。</p>
+<a id="more"></a>
+
+<h1 id="KiDispatchException-分析"><a href="#KiDispatchException-分析" class="headerlink" title="KiDispatchException 分析"></a>KiDispatchException 分析</h1><p>我们前面说内核异常派发的时候，已经知道 无论是内核发生的异常还是用户发生的异常，最终都会走到 KiDispatchException 中派发。下面分析一下用户层怎么处理的。</p>
+<img src="/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/1.png">
+
+<h1 id="ntdll-KiUserExceptionDispatcher-分析"><a href="#ntdll-KiUserExceptionDispatcher-分析" class="headerlink" title="ntdll!KiUserExceptionDispatcher 分析"></a>ntdll!KiUserExceptionDispatcher 分析</h1><p>返回到用户层后，发现调用 RtlDispatchException 处理异常。在以前分析内核异常派发的时候，也有一个 RtlDispatchException，但两者是不一样的。一个是内核模块的函数，一个是用户模块（ntdll）的函数。</p>
+<img src="/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/2.png">
+
+<h1 id="ntdll-RtlDispatchException-分析"><a href="#ntdll-RtlDispatchException-分析" class="headerlink" title="ntdll!RtlDispatchException 分析"></a>ntdll!RtlDispatchException 分析</h1><p>用户层异常处理有两种：</p>
+<ul>
+<li>VEH（Vector Exception Handler）</li>
+<li>SEH（Struct Exception Handler）</li>
+</ul>
+<p>VEH 相当于进程，进程中的每个线程都能被它处理。全局变量去查找。<br>SEH 相当于线程，只能处理当前线程。TEP KPCR 第一个成员都是 ExceptionList。（__try __except 就是 SEH）</p>
+<img src="/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/3.png">
 ]]></content>
       <categories>
         <category>Windows内核研究</category>

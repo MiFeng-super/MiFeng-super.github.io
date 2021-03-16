@@ -6,7 +6,7 @@
   <link href="https://mifeng.cyou/atom.xml" rel="self"/>
   
   <link href="https://mifeng.cyou/"/>
-  <updated>2021-03-08T10:56:31.901Z</updated>
+  <updated>2021-03-16T11:10:36.380Z</updated>
   <id>https://mifeng.cyou/</id>
   
   <author>
@@ -15,6 +15,23 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>用户异常派发</title>
+    <link href="https://mifeng.cyou/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/"/>
+    <id>https://mifeng.cyou/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/</id>
+    <published>2021-03-16T18:27:53.000Z</published>
+    <updated>2021-03-16T11:10:36.380Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;用户层发生异常时，处理函数在用户层，这时就要从内核层返回用户层处理。相比内核发生异常，处理起来要麻烦一些。&lt;br&gt;异常返回用户层和用户APC返回用户层处理流程大体上相同，只不过，到用户层的EIP不一样。&lt;br&gt;用户层APC：KiUserApcDispatcher，用户层异常：KiUserDispatchDispatcher。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Windows内核研究" scheme="https://mifeng.cyou/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>内核异常派发</title>
@@ -190,7 +207,7 @@
     <link href="https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
     <id>https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/</id>
     <published>2021-01-28T16:10:20.000Z</published>
-    <updated>2021-03-08T08:37:40.961Z</updated>
+    <updated>2021-03-16T10:28:59.489Z</updated>
     
     
     <summary type="html">&lt;blockquote class=&quot;blockquote-center&quot;&gt;
