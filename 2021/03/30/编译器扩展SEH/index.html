@@ -24,22 +24,23 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"mifeng.cyou","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
   </script>
-<meta name="description" content="写在前面保护模式有两大机制：段和页想了解段机制就要先了解 段寄存器">
+<meta name="description" content="写在前面在 Windows 下做C++开发的都知道。VC 编译器有几个异常处理的关键字：__try __except __finally。那么编译器是怎么捕获异常的呢？怎么处理异常的呢？ 环境说明因为不同的编译器，可能不一样。大体上来说是一样。  平台工具集：Visual Studio 2015 - Windows xp 编译模式：Release">
 <meta property="og:type" content="article">
-<meta property="og:title" content="段寄存器结构">
-<meta property="og:url" content="https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/index.html">
+<meta property="og:title" content="编译器扩展SEH">
+<meta property="og:url" content="https://mifeng.cyou/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/index.html">
 <meta property="og:site_name" content="MiFeng&#39;s Blog">
-<meta property="og:description" content="写在前面保护模式有两大机制：段和页想了解段机制就要先了解 段寄存器">
+<meta property="og:description" content="写在前面在 Windows 下做C++开发的都知道。VC 编译器有几个异常处理的关键字：__try __except __finally。那么编译器是怎么捕获异常的呢？怎么处理异常的呢？ 环境说明因为不同的编译器，可能不一样。大体上来说是一样。  平台工具集：Visual Studio 2015 - Windows xp 编译模式：Release">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
-<meta property="article:published_time" content="2021-01-28T16:38:10.000Z">
-<meta property="article:modified_time" content="2021-02-01T10:13:43.119Z">
+<meta property="og:image" content="https://mifeng.cyou/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/2.png">
+<meta property="og:image" content="https://mifeng.cyou/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/1.png">
+<meta property="article:published_time" content="2021-03-30T08:18:35.000Z">
+<meta property="article:modified_time" content="2021-03-30T02:15:07.648Z">
 <meta property="article:author" content="蜜蜂">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
+<meta name="twitter:image" content="https://mifeng.cyou/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/2.png">
 
 
-<link rel="canonical" href="https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/">
+<link rel="canonical" href="https://mifeng.cyou/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/">
 
 
 <script class="page-configurations">
@@ -51,7 +52,7 @@
     lang   : 'zh-CN'
   };
 </script>
-<title>段寄存器结构 | MiFeng's Blog</title>
+<title>编译器扩展SEH | MiFeng's Blog</title>
   
 
 
@@ -192,7 +193,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%9F%E6%9C%89%E5%93%AA%E5%87%A0%E4%B8%AA%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">什么是段寄存器？有哪几个？</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84"><span class="nav-number">3.</span> <span class="nav-text">段寄存器结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%9A%84%E8%AF%BB%E5%86%99"><span class="nav-number">4.</span> <span class="nav-text">段寄存器的读写</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%BB%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-number">4.1.</span> <span class="nav-text">读段寄存器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%99%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8"><span class="nav-number">4.2.</span> <span class="nav-text">写段寄存器</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AE%B5%E9%80%89%E6%8B%A9%E5%AD%90"><span class="nav-number">5.</span> <span class="nav-text">段选择子</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E8%AF%B4%E6%98%8E"><span class="nav-number">2.</span> <span class="nav-text">环境说明</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#try-except-%E5%88%86%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">__try __except 分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81"><span class="nav-number">3.1.</span> <span class="nav-text">代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90"><span class="nav-number">3.2.</span> <span class="nav-text">函数分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#main-%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90"><span class="nav-number">3.2.1.</span> <span class="nav-text">main 函数分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#except-handler3-%E5%87%BD%E6%95%B0%E5%88%86%E6%9E%90"><span class="nav-number">3.2.2.</span> <span class="nav-text">__except_handler3 函数分析</span></a></li></ol></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -268,7 +269,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/">
+    <link itemprop="mainEntityOfPage" href="https://mifeng.cyou/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpg">
@@ -281,7 +282,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          段寄存器结构
+          编译器扩展SEH
         </h1>
 
         <div class="post-meta-container">
@@ -292,7 +293,7 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2021-01-28 16:38:10" itemprop="dateCreated datePublished" datetime="2021-01-28T16:38:10Z">2021-01-28</time>
+      <time title="创建时间：2021-03-30 08:18:35" itemprop="dateCreated datePublished" datetime="2021-03-30T08:18:35Z">2021-03-30</time>
 	</span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -312,7 +313,7 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>592</span>
+      <span>1.4k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
@@ -330,17 +331,24 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>保护模式有两大机制：段和页<br>想了解段机制就要先了解 <font color="RED">段寄存器</font></p>
+        <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>在 Windows 下做C++开发的都知道。VC 编译器有几个异常处理的关键字：__try __except __finally。那么编译器是怎么捕获异常的呢？怎么处理异常的呢？</p>
+<h1 id="环境说明"><a href="#环境说明" class="headerlink" title="环境说明"></a>环境说明</h1><p>因为不同的编译器，可能不一样。大体上来说是一样。</p>
+<ul>
+<li>平台工具集：Visual Studio 2015 - Windows xp</li>
+<li>编译模式：Release</li>
+</ul>
 <a id="more"></a>
 
-<h1 id="什么是段寄存器？有哪几个？"><a href="#什么是段寄存器？有哪几个？" class="headerlink" title="什么是段寄存器？有哪几个？"></a>什么是段寄存器？有哪几个？</h1><p>当我们用汇编读写内存的时候：<br><code> mov eax, dword ptr ds:[0x12345678], eax </code><br>这里其实读写的真实地址是：ds.base + 0x12345678，<br>但是，现在我们使用“保护模式”，内存对我们来说是平坦的。因此段寄存器的 base 都是从 0 开始的。这时的段更像做权限限制的东西。（类似R3无法访问R0的内存）。</p>
-<p>ES CS SS DS FS GS LDTR TR 共8个段寄存器。</p>
-<h1 id="段寄存器结构"><a href="#段寄存器结构" class="headerlink" title="段寄存器结构"></a>段寄存器结构</h1><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Selecter</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	WORD Selecter;     <span class="comment">//16位 Selecter，通过这个字段查询到更多信息</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="段寄存器的读写"><a href="#段寄存器的读写" class="headerlink" title="段寄存器的读写"></a>段寄存器的读写</h1><h2 id="读段寄存器"><a href="#读段寄存器" class="headerlink" title="读段寄存器"></a>读段寄存器</h2><p>比如：<code>mov ax, ds</code><br>读写LDTR的指令：SLDT/LLDT<br>读写TR的指令：  STR/LTR</p>
-<h2 id="写段寄存器"><a href="#写段寄存器" class="headerlink" title="写段寄存器"></a>写段寄存器</h2><p>比如：<code>mov ds, ax</code><br>重新写入的话，段寄存器查表读到的字段就可能不一样了。</p>
-<h1 id="段选择子"><a href="#段选择子" class="headerlink" title="段选择子"></a>段选择子</h1><img src="/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
+<h1 id="try-except-分析"><a href="#try-except-分析" class="headerlink" title="__try __except 分析"></a>__try __except 分析</h1><h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;Windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Exception_Filier</span><span class="params">(EXCEPTION_POINTERS* pExceptionInfo)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (pExceptionInfo-&gt;ExceptionRecord-&gt;ExceptionCode == EXCEPTION_INT_DIVIDE_BY_ZERO)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span> EXCEPTION_EXECUTE_HANDLER;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> EXCEPTION_CONTINUE_SEARCH;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	__try</span><br><span class="line">	&#123;</span><br><span class="line">		_asm</span><br><span class="line">		&#123;</span><br><span class="line">			push eax;				<span class="comment">//构造除零异常</span></span><br><span class="line">			push edx;</span><br><span class="line">			mov eax, <span class="number">0x1000</span>;</span><br><span class="line">			mov edx, <span class="number">0</span>;</span><br><span class="line">			idiv edx;</span><br><span class="line">			pop edx;</span><br><span class="line">			pop eax;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	__except (Exception_Filier(GetExceptionInformation()))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;except\n&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;success\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="函数分析"><a href="#函数分析" class="headerlink" title="函数分析"></a>函数分析</h2><p>编译器扩展了 _EXCEPTION_REGISTRATION_RECORD 如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">EH3_EXCEPTION_REGISTRATION</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    DWORD Next;</span><br><span class="line">    DWORD ExceptionHandler;</span><br><span class="line">    DWORD ScopeTable;</span><br><span class="line">    DWORD TryLevel;</span><br><span class="line">&#125;_EH3_EXCEPTION_REGISTRATION;</span><br></pre></td></tr></table></figure>
+<p>ScopeTable 结构如下：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">SCOPETABLE_ENTRY</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    DWORD EnclosingLevel;     <span class="comment">//上一级 try 索引。（因为 try 是可以嵌套的。）</span></span><br><span class="line">    DWORD FilterFunc;         <span class="comment">//过滤表达式地址</span></span><br><span class="line">    DWORD HandlerFunc;        <span class="comment">//__except</span></span><br><span class="line">&#125;_SCOPETABLE_ENTRY;</span><br></pre></td></tr></table></figure>
+<p>当一个函数中使用了 try 会在局部变量中开辟 CPPEH_RECORD 结构保存 try 信息：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">CPPEH_RECORD</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    DWORD old_esp;                <span class="comment">//保存旧的esp</span></span><br><span class="line">    EXCEPTION_POINTERS* exc_ptr;</span><br><span class="line">    SCOPETABLE_ENTRY* ScopeTable; <span class="comment">//指向ScopeTable</span></span><br><span class="line">    DWORD TryLevel;               <span class="comment">//当前处在哪个try中</span></span><br><span class="line">&#125;_CPPEH_RECORD;</span><br></pre></td></tr></table></figure>
+<h3 id="main-函数分析"><a href="#main-函数分析" class="headerlink" title="main 函数分析"></a>main 函数分析</h3><img src="/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/2.png">
 
-<p>Selecter 的结构如上。<br>前面说到 “段” 还有 <code>base</code> 等等一些东西，那么只有 16 位的段选择子怎么表示这些东西呢？<br>答案就是查表，通过段选择子提供的信息查表。<br><code>Selecter.index</code> 这个值就是在表中索引（类似数组的索引）<br><code>Selecter.TI</code>    这个值说明当前的段寄存器要查哪张表（GDT / LDT，后面的文章中解释）<br><code>Selecter.RPL</code>   请求特权等级，后面的文章中解释。</p>
+<h3 id="except-handler3-函数分析"><a href="#except-handler3-函数分析" class="headerlink" title="__except_handler3 函数分析"></a>__except_handler3 函数分析</h3><img src="/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/1.png">
 
     </div>
 
@@ -360,7 +368,7 @@
   </li>
   <li class="post-copyright-link">
       <strong>本文链接：</strong>
-      <a href="https://mifeng.cyou/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/" title="段寄存器结构">https://mifeng.cyou/2021/01/29/段寄存器结构/</a>
+      <a href="https://mifeng.cyou/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/" title="编译器扩展SEH">https://mifeng.cyou/2021/03/30/编译器扩展SEH/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -390,14 +398,11 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F/" rel="prev" title="什么是保护模式？">
-                  <i class="fa fa-chevron-left"></i> 什么是保护模式？
+                <a href="/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/" rel="prev" title="用户异常派发">
+                  <i class="fa fa-chevron-left"></i> 用户异常派发
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/" rel="next" title="GDT表与段描述符">
-                  GDT表与段描述符 <i class="fa fa-chevron-right"></i>
-                </a>
             </div>
           </div>
     </footer>

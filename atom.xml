@@ -6,7 +6,7 @@
   <link href="https://mifeng.cyou/atom.xml" rel="self"/>
   
   <link href="https://mifeng.cyou/"/>
-  <updated>2021-03-16T11:10:36.380Z</updated>
+  <updated>2021-03-30T02:15:07.648Z</updated>
   <id>https://mifeng.cyou/</id>
   
   <author>
@@ -15,6 +15,28 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>编译器扩展SEH</title>
+    <link href="https://mifeng.cyou/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/"/>
+    <id>https://mifeng.cyou/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/</id>
+    <published>2021-03-30T08:18:35.000Z</published>
+    <updated>2021-03-30T02:15:07.648Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;写在前面&quot;&gt;&lt;a href=&quot;#写在前面&quot; class=&quot;headerlink&quot; title=&quot;写在前面&quot;&gt;&lt;/a&gt;写在前面&lt;/h1&gt;&lt;p&gt;在 Windows 下做C++开发的都知道。VC 编译器有几个异常处理的关键字：__try __except __finally。那么编译器是怎么捕获异常的呢？怎么处理异常的呢？&lt;/p&gt;
+&lt;h1 id=&quot;环境说明&quot;&gt;&lt;a href=&quot;#环境说明&quot; class=&quot;headerlink&quot; title=&quot;环境说明&quot;&gt;&lt;/a&gt;环境说明&lt;/h1&gt;&lt;p&gt;因为不同的编译器，可能不一样。大体上来说是一样。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;平台工具集：Visual Studio 2015 - Windows xp&lt;/li&gt;
+&lt;li&gt;编译模式：Release&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    <category term="Windows内核研究" scheme="https://mifeng.cyou/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>用户异常派发</title>
@@ -207,7 +229,7 @@
     <link href="https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/"/>
     <id>https://mifeng.cyou/2021/01/29/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/</id>
     <published>2021-01-28T16:10:20.000Z</published>
-    <updated>2021-03-16T10:28:59.489Z</updated>
+    <updated>2021-03-30T00:21:39.027Z</updated>
     
     
     <summary type="html">&lt;blockquote class=&quot;blockquote-center&quot;&gt;

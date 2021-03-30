@@ -24,7 +24,34 @@
 <li><a href="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95">软件模拟异常记录</a></li>
 <li><a href="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91">内核异常派发</a></li>
 <li><a href="/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91">用户异常派发</a></li>
+<li><a href="2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH">编译器扩展SEH</a></li>
 </ul>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>编译器扩展SEH</title>
+    <url>/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/</url>
+    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>在 Windows 下做C++开发的都知道。VC 编译器有几个异常处理的关键字：__try __except __finally。那么编译器是怎么捕获异常的呢？怎么处理异常的呢？</p>
+<h1 id="环境说明"><a href="#环境说明" class="headerlink" title="环境说明"></a>环境说明</h1><p>因为不同的编译器，可能不一样。大体上来说是一样。</p>
+<ul>
+<li>平台工具集：Visual Studio 2015 - Windows xp</li>
+<li>编译模式：Release</li>
+</ul>
+<a id="more"></a>
+
+<h1 id="try-except-分析"><a href="#try-except-分析" class="headerlink" title="__try __except 分析"></a>__try __except 分析</h1><h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;Windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Exception_Filier</span><span class="params">(EXCEPTION_POINTERS* pExceptionInfo)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (pExceptionInfo-&gt;ExceptionRecord-&gt;ExceptionCode == EXCEPTION_INT_DIVIDE_BY_ZERO)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span> EXCEPTION_EXECUTE_HANDLER;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> EXCEPTION_CONTINUE_SEARCH;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	__try</span><br><span class="line">	&#123;</span><br><span class="line">		_asm</span><br><span class="line">		&#123;</span><br><span class="line">			push eax;				<span class="comment">//构造除零异常</span></span><br><span class="line">			push edx;</span><br><span class="line">			mov eax, <span class="number">0x1000</span>;</span><br><span class="line">			mov edx, <span class="number">0</span>;</span><br><span class="line">			idiv edx;</span><br><span class="line">			pop edx;</span><br><span class="line">			pop eax;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	__except (Exception_Filier(GetExceptionInformation()))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;except\n&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;success\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="函数分析"><a href="#函数分析" class="headerlink" title="函数分析"></a>函数分析</h2><p>编译器扩展了 _EXCEPTION_REGISTRATION_RECORD 如下：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">EH3_EXCEPTION_REGISTRATION</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    DWORD Next;</span><br><span class="line">    DWORD ExceptionHandler;</span><br><span class="line">    DWORD ScopeTable;</span><br><span class="line">    DWORD TryLevel;</span><br><span class="line">&#125;_EH3_EXCEPTION_REGISTRATION;</span><br></pre></td></tr></table></figure>
+<p>ScopeTable 结构如下：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">SCOPETABLE_ENTRY</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    DWORD EnclosingLevel;     <span class="comment">//上一级 try 索引。（因为 try 是可以嵌套的。）</span></span><br><span class="line">    DWORD FilterFunc;         <span class="comment">//过滤表达式地址</span></span><br><span class="line">    DWORD HandlerFunc;        <span class="comment">//__except</span></span><br><span class="line">&#125;_SCOPETABLE_ENTRY;</span><br></pre></td></tr></table></figure>
+<p>当一个函数中使用了 try 会在局部变量中开辟 CPPEH_RECORD 结构保存 try 信息：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">CPPEH_RECORD</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    DWORD old_esp;                <span class="comment">//保存旧的esp</span></span><br><span class="line">    EXCEPTION_POINTERS* exc_ptr;</span><br><span class="line">    SCOPETABLE_ENTRY* ScopeTable; <span class="comment">//指向ScopeTable</span></span><br><span class="line">    DWORD TryLevel;               <span class="comment">//当前处在哪个try中</span></span><br><span class="line">&#125;_CPPEH_RECORD;</span><br></pre></td></tr></table></figure>
+<h3 id="main-函数分析"><a href="#main-函数分析" class="headerlink" title="main 函数分析"></a>main 函数分析</h3><img src="/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/2.png">
+
+<h3 id="except-handler3-函数分析"><a href="#except-handler3-函数分析" class="headerlink" title="__except_handler3 函数分析"></a>__except_handler3 函数分析</h3><img src="/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/1.png">
 ]]></content>
       <categories>
         <category>Windows内核研究</category>
