@@ -32,18 +32,288 @@
       </categories>
   </entry>
   <entry>
-    <title>Hello World</title>
-    <url>/2021/01/26/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+    <title>编译器扩展SEH</title>
+    <url>/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/</url>
+    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>在 Windows 下做C++开发的都知道。VC 编译器有几个异常处理的关键字：__try __except __finally。那么编译器是怎么捕获异常的呢？怎么处理异常的呢？</p>
+<h1 id="环境说明"><a href="#环境说明" class="headerlink" title="环境说明"></a>环境说明</h1><p>因为不同的编译器，可能不一样。大体上来说是一样。</p>
+<ul>
+<li>平台工具集：Visual Studio 2015 - Windows xp</li>
+<li>编译模式：Release</li>
+</ul>
+<a id="more"></a>
+
+<h1 id="try-except-分析"><a href="#try-except-分析" class="headerlink" title="__try __except 分析"></a>__try __except 分析</h1><h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;Windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Exception_Filier</span><span class="params">(EXCEPTION_POINTERS* pExceptionInfo)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (pExceptionInfo-&gt;ExceptionRecord-&gt;ExceptionCode == EXCEPTION_INT_DIVIDE_BY_ZERO)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span> EXCEPTION_EXECUTE_HANDLER;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> EXCEPTION_CONTINUE_SEARCH;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	__try</span><br><span class="line">	&#123;</span><br><span class="line">		_asm</span><br><span class="line">		&#123;</span><br><span class="line">			push eax;				<span class="comment">//构造除零异常</span></span><br><span class="line">			push edx;</span><br><span class="line">			mov eax, <span class="number">0x1000</span>;</span><br><span class="line">			mov edx, <span class="number">0</span>;</span><br><span class="line">			idiv edx;</span><br><span class="line">			pop edx;</span><br><span class="line">			pop eax;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	__except (Exception_Filier(GetExceptionInformation()))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;except\n&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;success\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="函数分析"><a href="#函数分析" class="headerlink" title="函数分析"></a>函数分析</h2><p>编译器扩展了 _EXCEPTION_REGISTRATION_RECORD 如下：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">EH3_EXCEPTION_REGISTRATION</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    DWORD Next;</span><br><span class="line">    DWORD ExceptionHandler;</span><br><span class="line">    DWORD ScopeTable;</span><br><span class="line">    DWORD TryLevel;</span><br><span class="line">&#125;_EH3_EXCEPTION_REGISTRATION;</span><br></pre></td></tr></table></figure>
+<p>ScopeTable 结构如下：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">SCOPETABLE_ENTRY</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    DWORD EnclosingLevel;     <span class="comment">//上一级 try 索引。（因为 try 是可以嵌套的。）</span></span><br><span class="line">    DWORD FilterFunc;         <span class="comment">//过滤表达式地址</span></span><br><span class="line">    DWORD HandlerFunc;        <span class="comment">//__except</span></span><br><span class="line">&#125;_SCOPETABLE_ENTRY;</span><br></pre></td></tr></table></figure>
+<p>当一个函数中使用了 try 会在局部变量中开辟 CPPEH_RECORD 结构保存 try 信息：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">CPPEH_RECORD</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    DWORD old_esp;                <span class="comment">//保存旧的esp</span></span><br><span class="line">    EXCEPTION_POINTERS* exc_ptr;</span><br><span class="line">    SCOPETABLE_ENTRY* ScopeTable; <span class="comment">//指向ScopeTable</span></span><br><span class="line">    DWORD TryLevel;               <span class="comment">//当前处在哪个try中</span></span><br><span class="line">&#125;_CPPEH_RECORD;</span><br></pre></td></tr></table></figure>
+<h3 id="main-函数分析"><a href="#main-函数分析" class="headerlink" title="main 函数分析"></a>main 函数分析</h3><img src="/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/2.png">
+
+<h3 id="except-handler3-函数分析"><a href="#except-handler3-函数分析" class="headerlink" title="__except_handler3 函数分析"></a>__except_handler3 函数分析</h3><img src="/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/1.png">
 ]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>用户异常派发</title>
+    <url>/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/</url>
+    <content><![CDATA[<p>用户层发生异常时，处理函数在用户层，这时就要从内核层返回用户层处理。相比内核发生异常，处理起来要麻烦一些。<br>异常返回用户层和用户APC返回用户层处理流程大体上相同，只不过，到用户层的EIP不一样。<br>用户层APC：KiUserApcDispatcher，用户层异常：KiUserDispatchDispatcher。</p>
+<a id="more"></a>
+
+<h1 id="KiDispatchException-分析"><a href="#KiDispatchException-分析" class="headerlink" title="KiDispatchException 分析"></a>KiDispatchException 分析</h1><p>我们前面说内核异常派发的时候，已经知道 无论是内核发生的异常还是用户发生的异常，最终都会走到 KiDispatchException 中派发。下面分析一下用户层怎么处理的。</p>
+<img src="/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/1.png">
+
+<h1 id="ntdll-KiUserExceptionDispatcher-分析"><a href="#ntdll-KiUserExceptionDispatcher-分析" class="headerlink" title="ntdll!KiUserExceptionDispatcher 分析"></a>ntdll!KiUserExceptionDispatcher 分析</h1><p>返回到用户层后，发现调用 RtlDispatchException 处理异常。在以前分析内核异常派发的时候，也有一个 RtlDispatchException，但两者是不一样的。一个是内核模块的函数，一个是用户模块（ntdll）的函数。</p>
+<img src="/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/2.png">
+
+<h1 id="ntdll-RtlDispatchException-分析"><a href="#ntdll-RtlDispatchException-分析" class="headerlink" title="ntdll!RtlDispatchException 分析"></a>ntdll!RtlDispatchException 分析</h1><p>用户层异常处理有两种：</p>
+<ul>
+<li>VEH（Vector Exception Handler）</li>
+<li>SEH（Struct Exception Handler）</li>
+</ul>
+<p>VEH 相当于进程，进程中的每个线程都能被它处理。全局变量去查找。<br>SEH 相当于线程，只能处理当前线程。TEP KPCR 第一个成员都是 ExceptionList。（__try __except 就是 SEH）</p>
+<img src="/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/3.png">
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>内核异常派发</title>
+    <url>/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/</url>
+    <content><![CDATA[<h1 id="KiDispatchException-分析"><a href="#KiDispatchException-分析" class="headerlink" title="KiDispatchException 分析"></a>KiDispatchException 分析</h1><p>无论是内核发生的异常还是用户发生的异常，最终都会走到 KiDispatchException 中派发。</p>
+<a id="more"></a>
+
+<img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/1.png">
+
+<h1 id="主逻辑分析"><a href="#主逻辑分析" class="headerlink" title="主逻辑分析"></a>主逻辑分析</h1><img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/2.png">
+
+<h1 id="RtlDispatchException-分析"><a href="#RtlDispatchException-分析" class="headerlink" title="RtlDispatchException 分析"></a>RtlDispatchException 分析</h1><p>_KPCR + 0x0 中是一个 ExceptionList，里面是一个链表。_EXCEPTION_REGISTRATION_ROCRD 里面有一个异常处理函数。<br><img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/3.png"></p>
+<p>其中，异常处理函数的返回值为 _EXCEPTION_DISPOSITION ，来判断异常处理结果。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span> _<span class="title">EXCEPTION_DISPOSITION</span> &#123;</span></span><br><span class="line">    ExceptionContinueExecution,   <span class="comment">//异常处理成功</span></span><br><span class="line">    ExceptionContinueSearch,      <span class="comment">//异常没有处理，继续寻找</span></span><br><span class="line">    ExceptionNestedException,     <span class="comment">//二次异常，存在嵌套异常</span></span><br><span class="line">    ExceptionCollidedUnwind       <span class="comment">//发生嵌套的展开</span></span><br><span class="line">&#125; EXCEPTION_DISPOSITION;</span><br></pre></td></tr></table></figure>
+<p>RtlDispatchException 核心就是遍历这张链表，执行处理函数。<br><img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/4.png"></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>在内核发生异常，处理起来比较简单。不用返回到三环处理。<br>KiDispatchException 的处理逻辑也比较清晰。</p>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>软件模拟异常记录</title>
+    <url>/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/</url>
+    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>软件模拟异常：这个异常不是CPU在执行的时候产生的，而且软件模拟的。C++ 中的 throw 关键字。</p>
+<a id="more"></a>
+
+<h1 id="软件模拟异常"><a href="#软件模拟异常" class="headerlink" title="软件模拟异常"></a>软件模拟异常</h1><h2 id="throw反汇编"><a href="#throw反汇编" class="headerlink" title="throw反汇编"></a>throw反汇编</h2><p>使用 throw 1，抛出异常。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">push        offset __CTA2PAD (004265d4)</span><br><span class="line">lea         eax,[ebp-4]</span><br><span class="line">push        eax</span><br><span class="line">call        __CxxThrowException@8</span><br></pre></td></tr></table></figure>
+<h2 id="CxxThrowException-中调用-RaiseException"><a href="#CxxThrowException-中调用-RaiseException" class="headerlink" title="__CxxThrowException 中调用 RaiseException"></a>__CxxThrowException 中调用 RaiseException</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mov         edx,dword ptr [ebp-20h]</span><br><span class="line">push        edx                     &#x2F;&#x2F;ExceptionCode</span><br><span class="line">call        dword ptr [__imp__RaiseException@16 (0042d1a0)]</span><br></pre></td></tr></table></figure>
+<p>其中作为 RaiseException 的第一个参数（dwExceptionCode）是编译器指定的，并不像CPU异常一样有一个固定的值（除零 C0000094）</p>
+<h2 id="RaiseException-函数分析"><a href="#RaiseException-函数分析" class="headerlink" title="RaiseException 函数分析"></a>RaiseException 函数分析</h2><p>该函数中创建 _EXCEPTION_RECORD 结构，并调用 RtlRaiseException</p>
+<img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/1.png">
+
+<h2 id="RtlRaiseException-函数分析"><a href="#RtlRaiseException-函数分析" class="headerlink" title="RtlRaiseException 函数分析"></a>RtlRaiseException 函数分析</h2><p>该函数中创建 _CONTEXT 结构保存环境，并调用 ZwRaiseException。</p>
+<img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/2.png">
+
+<h2 id="ZwRaiseException-函数分析"><a href="#ZwRaiseException-函数分析" class="headerlink" title="ZwRaiseException 函数分析"></a>ZwRaiseException 函数分析</h2><p>通过系统调用进入内核。ssdt index：0xB5</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mov     eax, 0B5h       ; NtRaiseException</span><br><span class="line">mov     edx, 7FFE0300h</span><br><span class="line">call    dword ptr [edx]</span><br><span class="line">retn    0Ch</span><br></pre></td></tr></table></figure>
+<h2 id="NtRaiseException-函数分析"><a href="#NtRaiseException-函数分析" class="headerlink" title="NtRaiseException 函数分析"></a>NtRaiseException 函数分析</h2><p>该函数的本质是 KiRaiseException。做一些初始化工作后，调用 KiRaiseException。最后通过 KiServiceExit 退出函数。<br><img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/3.png"></p>
+<h2 id="KiRaiseException-函数分析"><a href="#KiRaiseException-函数分析" class="headerlink" title="KiRaiseException 函数分析"></a>KiRaiseException 函数分析</h2><p>在该函数中，做了一些基本的判断。首先，判断先前模式R3，则把 _CONTEXT 和 _EXCEPTION_RECORD 拷贝到R0栈中（在拷贝前做了很多安全判断）；最后把 ExceptionCode 的最高位置0。<br>除零 C0000094 ，最高位为 1，则是CPU异常；而如果最高位为 0，则是软件模拟异常。<br>最后调用 KiDispatchException，至此就同CPU异常一样，进入派发函数。</p>
+<img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/4.png">
+
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ul>
+<li>CPU 发送异常时，直接在R0，而当软件模拟异常时，则多了一个R3到R0的过程，相对比较复杂。</li>
+<li>无论，CPU异常还是软件模拟异常，最后都会通过 KiDispatchException 函数派发</li>
+<li>唯一区分异常的方式：就是看 ExceptionCode 的最高位，如果为 1，则是CPU异常；如果为 0，则是软件模拟异常</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>CPU异常记录</title>
+    <url>/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/</url>
+    <content><![CDATA[<h1 id="异常种类"><a href="#异常种类" class="headerlink" title="异常种类"></a>异常种类</h1><ul>
+<li>错误类：CPU在执行当前指令的时候，发生错误。（除零异常等等）</li>
+<li>陷阱类：CPU已经执行完了当前指令，产生异常。（int3 TF单步等等）</li>
+<li>终止类：一般就是不能修复的异常。在内核中就直接蓝屏了，在应用层进程就直接退出。</li>
+</ul>
+<a id="more"></a>
+
+<h1 id="分析除零异常"><a href="#分析除零异常" class="headerlink" title="分析除零异常"></a>分析除零异常</h1><p>当出现除零异常的时候，其会走IDT[0]的中断函数（KiTrap00）。KiTrap00 函数中会把当前环境保存成 _KTRAP_FRAME ，<br>接着调用 CommonDispatchException 分发异常。</p>
+<p>_KTRAP_FRAME 结构如下：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">KTRAP_FRAME</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    ULONG DbgEbp;                                                           <span class="comment">//0x0</span></span><br><span class="line">    ULONG DbgEip;                                                           <span class="comment">//0x4</span></span><br><span class="line">    ULONG DbgArgMark;                                                       <span class="comment">//0x8</span></span><br><span class="line">    ULONG DbgArgPointer;                                                    <span class="comment">//0xc</span></span><br><span class="line">    ULONG TempSegCs;                                                        <span class="comment">//0x10</span></span><br><span class="line">    ULONG TempEsp;                                                          <span class="comment">//0x14</span></span><br><span class="line">    ULONG Dr0;                                                              <span class="comment">//0x18</span></span><br><span class="line">    ULONG Dr1;                                                              <span class="comment">//0x1c</span></span><br><span class="line">    ULONG Dr2;                                                              <span class="comment">//0x20</span></span><br><span class="line">    ULONG Dr3;                                                              <span class="comment">//0x24</span></span><br><span class="line">    ULONG Dr6;                                                              <span class="comment">//0x28</span></span><br><span class="line">    ULONG Dr7;                                                              <span class="comment">//0x2c</span></span><br><span class="line">    ULONG SegGs;                                                            <span class="comment">//0x30</span></span><br><span class="line">    ULONG SegEs;                                                            <span class="comment">//0x34</span></span><br><span class="line">    ULONG SegDs;                                                            <span class="comment">//0x38</span></span><br><span class="line">    ULONG Edx;                                                              <span class="comment">//0x3c</span></span><br><span class="line">    ULONG Ecx;                                                              <span class="comment">//0x40</span></span><br><span class="line">    ULONG Eax;                                                              <span class="comment">//0x44</span></span><br><span class="line">    ULONG PreviousPreviousMode;                                             <span class="comment">//0x48</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_REGISTRATION_RECORD</span>* <span class="title">ExceptionList</span>;</span>                   <span class="comment">//0x4c</span></span><br><span class="line">    ULONG SegFs;                                                            <span class="comment">//0x50</span></span><br><span class="line">    ULONG Edi;                                                              <span class="comment">//0x54</span></span><br><span class="line">    ULONG Esi;                                                              <span class="comment">//0x58</span></span><br><span class="line">    ULONG Ebx;                                                              <span class="comment">//0x5c</span></span><br><span class="line">    ULONG Ebp;                                                              <span class="comment">//0x60</span></span><br><span class="line">    ULONG ErrCode;                                                          <span class="comment">//0x64</span></span><br><span class="line">    ULONG Eip;                                                              <span class="comment">//0x68</span></span><br><span class="line">    ULONG SegCs;                                                            <span class="comment">//0x6c</span></span><br><span class="line">    ULONG EFlags;                                                           <span class="comment">//0x70</span></span><br><span class="line">    ULONG HardwareEsp;                                                      <span class="comment">//0x74</span></span><br><span class="line">    ULONG HardwareSegSs;                                                    <span class="comment">//0x78</span></span><br><span class="line">    ULONG V86Es;                                                            <span class="comment">//0x7c</span></span><br><span class="line">    ULONG V86Ds;                                                            <span class="comment">//0x80</span></span><br><span class="line">    ULONG V86Fs;                                                            <span class="comment">//0x84</span></span><br><span class="line">    ULONG V86Gs;                                                            <span class="comment">//0x88</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>KiTrap00 函数流程图如下：</p>
+<img src="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/1.png">
+
+<p>_EXCEPTION_RECORD 结构如下：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    LONG ExceptionCode;                                  <span class="comment">//异常Code</span></span><br><span class="line">    ULONG ExceptionFlags;                                <span class="comment">//Flags</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span>* <span class="title">ExceptionRecord</span>;</span>           <span class="comment">//如果在异常处理中，产生异常，这里就有值了。</span></span><br><span class="line">    VOID* ExceptionAddress;                              <span class="comment">//异常地址。在CommonDispatchException函数中可以得知，异常地址 = EIP</span></span><br><span class="line">    ULONG NumberParameters;                              <span class="comment">//参数个数</span></span><br><span class="line">    ULONG ExceptionInformation[<span class="number">15</span>];                      <span class="comment">//保存参数，最多 15 个参数</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>CommonDispatchException 函数流程图如下：</p>
+<img src="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/2.png">
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>陷阱门与中断门</title>
+    <url>/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/</url>
+    <content><![CDATA[<h1 id="中断的认识"><a href="#中断的认识" class="headerlink" title="中断的认识"></a>中断的认识</h1><p>在 Windows 中并没有使用调用门，但是使用了中断门。<br>中断表（IDT）中有三种中断：</p>
+<ul>
+<li>陷阱门</li>
+<li>中断门</li>
+<li>任务门<a id="more"></a>
+
+</li>
+</ul>
+<p>我们先讲陷阱门和中断门。</p>
+<p>执行中断表的各种门是通过 <code>int </code> 指令。比如著名的断点指令 <code>int 0x3</code></p>
+<h1 id="查看IDT表"><a href="#查看IDT表" class="headerlink" title="查看IDT表"></a>查看IDT表</h1><h2 id="查看IDT地址，和长度。"><a href="#查看IDT地址，和长度。" class="headerlink" title="查看IDT地址，和长度。"></a>查看IDT地址，和长度。</h2><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/1.png">
+
+<h2 id="查看内容"><a href="#查看内容" class="headerlink" title="查看内容"></a>查看内容</h2><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/2.png">
+或者
+<img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/3.png">
+
+<h1 id="中断门描述符"><a href="#中断门描述符" class="headerlink" title="中断门描述符"></a>中断门描述符</h1><p>与之前的调用门类似，但是值得注意的是没有参数。（可以通过寄存器传参）<br><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/4.png"></p>
+<h1 id="构造中断门读高地址内存"><a href="#构造中断门读高地址内存" class="headerlink" title="构造中断门读高地址内存"></a>构造中断门读高地址内存</h1><p>windbg 修改：<br>eq 8003f500 0040ee00`0008100A （0x40100A 函数地址）</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> val = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">_declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">GateFunc</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		pushad;</span><br><span class="line">		mov eax, <span class="number">0x8003f500</span>;</span><br><span class="line">		mov eax, dword ptr ds:[eax];</span><br><span class="line">		mov val, eax;</span><br><span class="line">		popad;</span><br><span class="line">		iretd;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, GateFunc);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">int</span> <span class="number">0x20</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;val: 0x%X\n&quot;</span>, val);</span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>运行结果如下：<br><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/5.png"></p>
+<h1 id="调用门返回与中断返回"><a href="#调用门返回与中断返回" class="headerlink" title="调用门返回与中断返回"></a>调用门返回与中断返回</h1><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/6.png">
+
+<h1 id="中断门使用-retf-返回"><a href="#中断门使用-retf-返回" class="headerlink" title="中断门使用 retf 返回"></a>中断门使用 retf 返回</h1><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">_declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">GateFunc</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		pop eax;	<span class="comment">// eip</span></span><br><span class="line">		pop ecx;	<span class="comment">// cs</span></span><br><span class="line">		pop edx;	<span class="comment">// eflag</span></span><br><span class="line"></span><br><span class="line">		push ecx;</span><br><span class="line">		push eax;</span><br><span class="line">		retf;</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, GateFunc);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">int</span> <span class="number">0x20</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;success\n&quot;</span>);</span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h1 id="陷阱门描述符"><a href="#陷阱门描述符" class="headerlink" title="陷阱门描述符"></a>陷阱门描述符</h1><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/7.png">
+
+<h1 id="中断门与陷阱门的区别"><a href="#中断门与陷阱门的区别" class="headerlink" title="中断门与陷阱门的区别"></a>中断门与陷阱门的区别</h1><p>中断门进入会执行 cli，此时会导致处理器忽略可屏蔽的外部中断，（清楚 EFLAG 的 IF标志）<br>陷阱门就不会。</p>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>调用门</title>
+    <url>/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/</url>
+    <content><![CDATA[<h1 id="如何理解调用门的-“门”-这个字？"><a href="#如何理解调用门的-“门”-这个字？" class="headerlink" title="如何理解调用门的 “门” 这个字？"></a>如何理解调用门的 “门” 这个字？</h1><p>门，通往另一个世界的通道。3环提权到0环的一个手段。</p>
+<a id="more"></a>
+
+<h1 id="如何构造调用门"><a href="#如何构造调用门" class="headerlink" title="如何构造调用门"></a>如何构造调用门</h1><img src="/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/1.png">
+
+<ul>
+<li>Segment Selector：提权后的CS段偏移</li>
+<li>Offset in Segment：提权后的EIP</li>
+</ul>
+<h1 id="调用门构造实验"><a href="#调用门构造实验" class="headerlink" title="调用门构造实验"></a>调用门构造实验</h1><p>实验目的：构造调用门，然后高权限执行调用门中指向的函数。</p>
+<p>
+windbg下对GDT表进行更改：<br>
+eq 8003f090 00cf9b00`0000ffff（代码段）<br>
+eq 8003f048 0040ec00`0090100A（调用门，指向代码段)<br>
+</p>
+
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"></span><br><span class="line">__declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">CallGate</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//int 0x3;</span></span><br><span class="line">		retf;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> buf[<span class="number">6</span>] = &#123;<span class="number">0</span>&#125;;     </span><br><span class="line">	buf[<span class="number">4</span>] = <span class="number">0x4B</span>; <span class="comment">//call cs:eip ，eip 随便填，调用门里面已经指定了</span></span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, CallGate);</span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		call fword ptr buf</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="远调用的特点"><a href="#远调用的特点" class="headerlink" title="远调用的特点"></a>远调用的特点</h1><p>call far ，当使用调用门时，就是远调用。<br>远调用，至少要保存4个值：call的返回地址 cs ss esp。<br>只要执行远call，就会切换栈。</p>
+<h1 id="调用门带参数实验"><a href="#调用门带参数实验" class="headerlink" title="调用门带参数实验"></a>调用门带参数实验</h1><p>
+修改调用门描述符：<br>
+eq 8003f048 0040ec01`0090100A</p>
+
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"></span><br><span class="line">__declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">CallGate</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//int 0x3;</span></span><br><span class="line">		retf <span class="number">0x4</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> buf[<span class="number">6</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">	buf[<span class="number">4</span>] = <span class="number">0x4B</span>;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, CallGate);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		push <span class="number">0x88888888</span></span><br><span class="line">		call fword ptr buf</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>栈结构如下：<br><img src="/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/2.png"></p>
+<p>从中可以看出，通过调用门，会有另一套堆栈，同时参数是在中间的部分。</p>
+<h1 id="调用门提权读取高地址内存"><a href="#调用门提权读取高地址内存" class="headerlink" title="调用门提权读取高地址内存"></a>调用门提权读取高地址内存</h1><p>实验目的：通过调用门提权，尝试读取高地址内存。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> val = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">__declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">CallGate</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//int 0x3;</span></span><br><span class="line">		pushad;</span><br><span class="line">		pushfd;</span><br><span class="line">		mov eax, dword ptr ds:[<span class="number">0x8003f010</span>];</span><br><span class="line">		mov val, eax;</span><br><span class="line">		popfd;</span><br><span class="line">		popad;</span><br><span class="line">		retf <span class="number">0x4</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> buf[<span class="number">6</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">	buf[<span class="number">4</span>] = <span class="number">0x4B</span>;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, CallGate);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		push <span class="number">0x88888888</span></span><br><span class="line">		call fword ptr buf</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;val: %X\n&quot;</span>, val);</span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>实验结果：<br><img src="/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/3.png"></p>
+<h1 id="调用门的权限检查"><a href="#调用门的权限检查" class="headerlink" title="调用门的权限检查"></a>调用门的权限检查</h1><p>按数值：<br>min(CPL,RPL) &gt;= 门的DPL<br>CPL &lt;= 代码段的DPL</p>
+<p>按权限：<br>max(CPL,RPL) &lt;= 门的DPL<br>CPL &gt;= 代码段的DPL</p>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>段描述符详解</title>
+    <url>/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/</url>
+    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>前面的文章中简单的介绍了“段描述符”。那么现在就介绍一下其他字段。</p>
+<a id="more"></a>
+<img src="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/1.png">
+
+<h1 id="P位，S位，和-TYPE"><a href="#P位，S位，和-TYPE" class="headerlink" title="P位，S位，和 TYPE"></a>P位，S位，和 TYPE</h1><p>P位（有效位）：0 = 无效段、1 = 有效段。（查看该段是否有效，最直接的方法）<br>S位：0 = 系统段、1 = 代码段或数据段。<br>TYPE：具体作用会根据 S位 变化。<br>比如 S位 == 1，TYPE的解释：<br><img src="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/2.png"></p>
+<p>比如 S位 == 0，TYPE的解释：<br><img src="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/3.png"></p>
+<h1 id="D-B位"><a href="#D-B位" class="headerlink" title="D/B位"></a>D/B位</h1><p>代码段的时候叫：D位<br>数据段的时候叫：B位</p>
+<h2 id="对CS段（代码段）的影响"><a href="#对CS段（代码段）的影响" class="headerlink" title="对CS段（代码段）的影响"></a>对CS段（代码段）的影响</h2><ul>
+<li>D = 1，采用32位寻址方式</li>
+<li>D = 0，采用16位寻址方式</li>
+</ul>
+<h2 id="对SS段的影响"><a href="#对SS段的影响" class="headerlink" title="对SS段的影响"></a>对SS段的影响</h2><ul>
+<li>D = 1，隐式栈指令 (push pop call) 使用32位栈指针寄存器ESP</li>
+<li>D = 0，隐式栈指令 (push pop call) 使用16位栈指针寄存器SP</li>
+</ul>
+<h2 id="对向下扩展（type-E-位）的数据段"><a href="#对向下扩展（type-E-位）的数据段" class="headerlink" title="对向下扩展（type.E 位）的数据段"></a>对向下扩展（type.E 位）的数据段</h2><ul>
+<li>D = 1，Limit为 0xFFFFFFFF</li>
+<li>D = 0，Limit为 64KB</li>
+</ul>
+<h1 id="段的权限检查"><a href="#段的权限检查" class="headerlink" title="段的权限检查"></a>段的权限检查</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ul>
+<li>RPL（Request Privilege Level）请求权限级别，段选择子的后两位</li>
+<li>DPL（Descriptor Privilege Level）段描述符权限级别</li>
+<li>CPL（Current Privilege Level）当前权限级别，当前工作在CS/SS的DPL</li>
+</ul>
+<h2 id="权限检查"><a href="#权限检查" class="headerlink" title="权限检查"></a>权限检查</h2><p><code>mov ds, ax</code><br>类似这样的汇编代码，就会触发权限检查，如果不通过就赋值失败了。</p>
+<p>首先，CPL代表当前权限级别（0环或3环）。如果工作在3环，RPL就不可能是0（最高权限），这样的话就根本请求不了。<br>既时，手动把RPL改成最高权限成功发起请求，也会和段描述符的DPL检验，还是一样不通过。<br>伪代码：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 返回 true 权限检查通过</span></span><br><span class="line"><span class="keyword">if</span> (RPL &lt;= DPL)</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (CPL &lt;= DPL)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> <span class="literal">false</span>;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>GDT表与段描述符</title>
+    <url>/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/</url>
+    <content><![CDATA[<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>前面的文章中，介绍了什么是段寄存器和段选择子。接下来我们来介绍一下，怎么通过段选择子获取到其他信息（base 等等）。</p>
+<h1 id="段选择子与GDT表"><a href="#段选择子与GDT表" class="headerlink" title="段选择子与GDT表"></a>段选择子与GDT表</h1><p>通过前面的文章中，我们可以了解到段寄存器（DS….）保存是段选择子。<br>段选择子指明其他信息的位置：查哪张表，在表中的位置，段的请求权限等级</p>
+<a id="more"></a>
+<h2 id="拆分段选择子"><a href="#拆分段选择子" class="headerlink" title="拆分段选择子"></a>拆分段选择子</h2><p>我们按照段选择子的结构，进行拆分：<br><img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/1.png"></p>
+<h2 id="搜索GDT表"><a href="#搜索GDT表" class="headerlink" title="搜索GDT表"></a>搜索GDT表</h2><p>GDT表的全称 Global Descriptor Table ，全局段描述表。<br>LDT表的全称 Local  Descriptor Table ，本地段描述表（后面文章细讲）。</p>
+<p>GDT 表的地址，保存在 gdtr 寄存器中，可以在 windbg 中通过 “r gdtr” 获取地址。<br>然后我们可以通过 dq address（一个段描述符8字节 qwrod）,如果知道索引就可以直接通过公式：dq gdtr + (index * 8)。<br><img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/2.png"></p>
+<h1 id="拆分段描述符"><a href="#拆分段描述符" class="headerlink" title="拆分段描述符"></a>拆分段描述符</h1><img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/3.png">
+
+<p>这里我们挑几个重点讲，后面文章中详细解释。</p>
+<h2 id="段限长（Limit）"><a href="#段限长（Limit）" class="headerlink" title="段限长（Limit）"></a>段限长（Limit）</h2><p>仔细观察，发现 [0:15]和高字节的[16:19]是段限长，但是这里才20位，还少12位。<br>这个时候，就得用到 G 位（23）了，颗粒度。<br>如果 G == 1，那么就以 4KB 为单位。就要在 Limit 高位补 0xFFF，这样就刚刚好满 32 位。<br>如果 G == 0，原来的 Limit 就好。</p>
+<img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/4.png">
+
+<h2 id="段基址（base）"><a href="#段基址（base）" class="headerlink" title="段基址（base）"></a>段基址（base）</h2><p>这个好像没什么好讲的，就是把段描述符的 base 组合起来。<br><img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/5.png"></p>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>段寄存器结构</title>
+    <url>/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/</url>
+    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>保护模式有两大机制：段和页<br>想了解段机制就要先了解 <font color="RED">段寄存器</font></p>
+<a id="more"></a>
+
+<h1 id="什么是段寄存器？有哪几个？"><a href="#什么是段寄存器？有哪几个？" class="headerlink" title="什么是段寄存器？有哪几个？"></a>什么是段寄存器？有哪几个？</h1><p>当我们用汇编读写内存的时候：<br><code> mov eax, dword ptr ds:[0x12345678], eax </code><br>这里其实读写的真实地址是：ds.base + 0x12345678，<br>但是，现在我们使用“保护模式”，内存对我们来说是平坦的。因此段寄存器的 base 都是从 0 开始的。这时的段更像做权限限制的东西。（类似R3无法访问R0的内存）。</p>
+<p>ES CS SS DS FS GS LDTR TR 共8个段寄存器。</p>
+<h1 id="段寄存器结构"><a href="#段寄存器结构" class="headerlink" title="段寄存器结构"></a>段寄存器结构</h1><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Selecter</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	WORD Selecter;     <span class="comment">//16位 Selecter，通过这个字段查询到更多信息</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="段寄存器的读写"><a href="#段寄存器的读写" class="headerlink" title="段寄存器的读写"></a>段寄存器的读写</h1><h2 id="读段寄存器"><a href="#读段寄存器" class="headerlink" title="读段寄存器"></a>读段寄存器</h2><p>比如：<code>mov ax, ds</code><br>读写LDTR的指令：SLDT/LLDT<br>读写TR的指令：  STR/LTR</p>
+<h2 id="写段寄存器"><a href="#写段寄存器" class="headerlink" title="写段寄存器"></a>写段寄存器</h2><p>比如：<code>mov ds, ax</code><br>重新写入的话，段寄存器查表读到的字段就可能不一样了。</p>
+<h1 id="段选择子"><a href="#段选择子" class="headerlink" title="段选择子"></a>段选择子</h1><img src="/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
+
+<p>Selecter 的结构如上。<br>前面说到 “段” 还有 <code>base</code> 等等一些东西，那么只有 16 位的段选择子怎么表示这些东西呢？<br>答案就是查表，通过段选择子提供的信息查表。<br><code>Selecter.index</code> 这个值就是在表中索引（类似数组的索引）<br><code>Selecter.TI</code>    这个值说明当前的段寄存器要查哪张表（GDT / LDT，后面的文章中解释）<br><code>Selecter.RPL</code>   请求特权等级，后面的文章中解释。</p>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>什么是保护模式？</title>
+    <url>/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F/</url>
+    <content><![CDATA[<h1 id="什么是保护模式？"><a href="#什么是保护模式？" class="headerlink" title="什么是保护模式？"></a>什么是保护模式？</h1><p>x86 CPU 有三个模式。分别为：实模式、保护模式、虚拟8086模式</p>
+<h1 id="保护模式有什么特点？"><a href="#保护模式有什么特点？" class="headerlink" title="保护模式有什么特点？"></a>保护模式有什么特点？</h1><p>段机制<br>页机制</p>
+<h1 id="参考书籍"><a href="#参考书籍" class="headerlink" title="参考书籍"></a>参考书籍</h1><p>《Intel 白皮书》</p>
+]]></content>
+      <categories>
+        <category>Windows内核研究</category>
+      </categories>
   </entry>
   <entry>
     <title>利用ESP8266制作WIFI杀手</title>
@@ -97,287 +367,17 @@
       </categories>
   </entry>
   <entry>
-    <title>什么是保护模式？</title>
-    <url>/2021/01/29/%E4%BB%80%E4%B9%88%E6%98%AF%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%EF%BC%9F/</url>
-    <content><![CDATA[<h1 id="什么是保护模式？"><a href="#什么是保护模式？" class="headerlink" title="什么是保护模式？"></a>什么是保护模式？</h1><p>x86 CPU 有三个模式。分别为：实模式、保护模式、虚拟8086模式</p>
-<h1 id="保护模式有什么特点？"><a href="#保护模式有什么特点？" class="headerlink" title="保护模式有什么特点？"></a>保护模式有什么特点？</h1><p>段机制<br>页机制</p>
-<h1 id="参考书籍"><a href="#参考书籍" class="headerlink" title="参考书籍"></a>参考书籍</h1><p>《Intel 白皮书》</p>
+    <title>Hello World</title>
+    <url>/2021/01/26/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
 ]]></content>
-      <categories>
-        <category>Windows内核研究</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>段寄存器结构</title>
-    <url>/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/</url>
-    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>保护模式有两大机制：段和页<br>想了解段机制就要先了解 <font color="RED">段寄存器</font></p>
-<a id="more"></a>
-
-<h1 id="什么是段寄存器？有哪几个？"><a href="#什么是段寄存器？有哪几个？" class="headerlink" title="什么是段寄存器？有哪几个？"></a>什么是段寄存器？有哪几个？</h1><p>当我们用汇编读写内存的时候：<br><code> mov eax, dword ptr ds:[0x12345678], eax </code><br>这里其实读写的真实地址是：ds.base + 0x12345678，<br>但是，现在我们使用“保护模式”，内存对我们来说是平坦的。因此段寄存器的 base 都是从 0 开始的。这时的段更像做权限限制的东西。（类似R3无法访问R0的内存）。</p>
-<p>ES CS SS DS FS GS LDTR TR 共8个段寄存器。</p>
-<h1 id="段寄存器结构"><a href="#段寄存器结构" class="headerlink" title="段寄存器结构"></a>段寄存器结构</h1><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Selecter</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	WORD Selecter;     <span class="comment">//16位 Selecter，通过这个字段查询到更多信息</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="段寄存器的读写"><a href="#段寄存器的读写" class="headerlink" title="段寄存器的读写"></a>段寄存器的读写</h1><h2 id="读段寄存器"><a href="#读段寄存器" class="headerlink" title="读段寄存器"></a>读段寄存器</h2><p>比如：<code>mov ax, ds</code><br>读写LDTR的指令：SLDT/LLDT<br>读写TR的指令：  STR/LTR</p>
-<h2 id="写段寄存器"><a href="#写段寄存器" class="headerlink" title="写段寄存器"></a>写段寄存器</h2><p>比如：<code>mov ds, ax</code><br>重新写入的话，段寄存器查表读到的字段就可能不一样了。</p>
-<h1 id="段选择子"><a href="#段选择子" class="headerlink" title="段选择子"></a>段选择子</h1><img src="/2021/01/29/%E6%AE%B5%E5%AF%84%E5%AD%98%E5%99%A8%E7%BB%93%E6%9E%84/1.png">
-
-<p>Selecter 的结构如上。<br>前面说到 “段” 还有 <code>base</code> 等等一些东西，那么只有 16 位的段选择子怎么表示这些东西呢？<br>答案就是查表，通过段选择子提供的信息查表。<br><code>Selecter.index</code> 这个值就是在表中索引（类似数组的索引）<br><code>Selecter.TI</code>    这个值说明当前的段寄存器要查哪张表（GDT / LDT，后面的文章中解释）<br><code>Selecter.RPL</code>   请求特权等级，后面的文章中解释。</p>
-]]></content>
-      <categories>
-        <category>Windows内核研究</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>GDT表与段描述符</title>
-    <url>/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/</url>
-    <content><![CDATA[<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>前面的文章中，介绍了什么是段寄存器和段选择子。接下来我们来介绍一下，怎么通过段选择子获取到其他信息（base 等等）。</p>
-<h1 id="段选择子与GDT表"><a href="#段选择子与GDT表" class="headerlink" title="段选择子与GDT表"></a>段选择子与GDT表</h1><p>通过前面的文章中，我们可以了解到段寄存器（DS….）保存是段选择子。<br>段选择子指明其他信息的位置：查哪张表，在表中的位置，段的请求权限等级</p>
-<a id="more"></a>
-<h2 id="拆分段选择子"><a href="#拆分段选择子" class="headerlink" title="拆分段选择子"></a>拆分段选择子</h2><p>我们按照段选择子的结构，进行拆分：<br><img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/1.png"></p>
-<h2 id="搜索GDT表"><a href="#搜索GDT表" class="headerlink" title="搜索GDT表"></a>搜索GDT表</h2><p>GDT表的全称 Global Descriptor Table ，全局段描述表。<br>LDT表的全称 Local  Descriptor Table ，本地段描述表（后面文章细讲）。</p>
-<p>GDT 表的地址，保存在 gdtr 寄存器中，可以在 windbg 中通过 “r gdtr” 获取地址。<br>然后我们可以通过 dq address（一个段描述符8字节 qwrod）,如果知道索引就可以直接通过公式：dq gdtr + (index * 8)。<br><img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/2.png"></p>
-<h1 id="拆分段描述符"><a href="#拆分段描述符" class="headerlink" title="拆分段描述符"></a>拆分段描述符</h1><img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/3.png">
-
-<p>这里我们挑几个重点讲，后面文章中详细解释。</p>
-<h2 id="段限长（Limit）"><a href="#段限长（Limit）" class="headerlink" title="段限长（Limit）"></a>段限长（Limit）</h2><p>仔细观察，发现 [0:15]和高字节的[16:19]是段限长，但是这里才20位，还少12位。<br>这个时候，就得用到 G 位（23）了，颗粒度。<br>如果 G == 1，那么就以 4KB 为单位。就要在 Limit 高位补 0xFFF，这样就刚刚好满 32 位。<br>如果 G == 0，原来的 Limit 就好。</p>
-<img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/4.png">
-
-<h2 id="段基址（base）"><a href="#段基址（base）" class="headerlink" title="段基址（base）"></a>段基址（base）</h2><p>这个好像没什么好讲的，就是把段描述符的 base 组合起来。<br><img src="/2021/01/31/GDT%E8%A1%A8%E4%B8%8E%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6/5.png"></p>
-]]></content>
-      <categories>
-        <category>Windows内核研究</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>段描述符详解</title>
-    <url>/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/</url>
-    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>前面的文章中简单的介绍了“段描述符”。那么现在就介绍一下其他字段。</p>
-<a id="more"></a>
-<img src="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/1.png">
-
-<h1 id="P位，S位，和-TYPE"><a href="#P位，S位，和-TYPE" class="headerlink" title="P位，S位，和 TYPE"></a>P位，S位，和 TYPE</h1><p>P位（有效位）：0 = 无效段、1 = 有效段。（查看该段是否有效，最直接的方法）<br>S位：0 = 系统段、1 = 代码段或数据段。<br>TYPE：具体作用会根据 S位 变化。<br>比如 S位 == 1，TYPE的解释：<br><img src="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/2.png"></p>
-<p>比如 S位 == 0，TYPE的解释：<br><img src="/2021/02/02/%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%AF%A6%E8%A7%A3/3.png"></p>
-<h1 id="D-B位"><a href="#D-B位" class="headerlink" title="D/B位"></a>D/B位</h1><p>代码段的时候叫：D位<br>数据段的时候叫：B位</p>
-<h2 id="对CS段（代码段）的影响"><a href="#对CS段（代码段）的影响" class="headerlink" title="对CS段（代码段）的影响"></a>对CS段（代码段）的影响</h2><ul>
-<li>D = 1，采用32位寻址方式</li>
-<li>D = 0，采用16位寻址方式</li>
-</ul>
-<h2 id="对SS段的影响"><a href="#对SS段的影响" class="headerlink" title="对SS段的影响"></a>对SS段的影响</h2><ul>
-<li>D = 1，隐式栈指令 (push pop call) 使用32位栈指针寄存器ESP</li>
-<li>D = 0，隐式栈指令 (push pop call) 使用16位栈指针寄存器SP</li>
-</ul>
-<h2 id="对向下扩展（type-E-位）的数据段"><a href="#对向下扩展（type-E-位）的数据段" class="headerlink" title="对向下扩展（type.E 位）的数据段"></a>对向下扩展（type.E 位）的数据段</h2><ul>
-<li>D = 1，Limit为 0xFFFFFFFF</li>
-<li>D = 0，Limit为 64KB</li>
-</ul>
-<h1 id="段的权限检查"><a href="#段的权限检查" class="headerlink" title="段的权限检查"></a>段的权限检查</h1><h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ul>
-<li>RPL（Request Privilege Level）请求权限级别，段选择子的后两位</li>
-<li>DPL（Descriptor Privilege Level）段描述符权限级别</li>
-<li>CPL（Current Privilege Level）当前权限级别，当前工作在CS/SS的DPL</li>
-</ul>
-<h2 id="权限检查"><a href="#权限检查" class="headerlink" title="权限检查"></a>权限检查</h2><p><code>mov ds, ax</code><br>类似这样的汇编代码，就会触发权限检查，如果不通过就赋值失败了。</p>
-<p>首先，CPL代表当前权限级别（0环或3环）。如果工作在3环，RPL就不可能是0（最高权限），这样的话就根本请求不了。<br>既时，手动把RPL改成最高权限成功发起请求，也会和段描述符的DPL检验，还是一样不通过。<br>伪代码：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 返回 true 权限检查通过</span></span><br><span class="line"><span class="keyword">if</span> (RPL &lt;= DPL)</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (CPL &lt;= DPL)</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> <span class="literal">false</span>;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Windows内核研究</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>调用门</title>
-    <url>/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/</url>
-    <content><![CDATA[<h1 id="如何理解调用门的-“门”-这个字？"><a href="#如何理解调用门的-“门”-这个字？" class="headerlink" title="如何理解调用门的 “门” 这个字？"></a>如何理解调用门的 “门” 这个字？</h1><p>门，通往另一个世界的通道。3环提权到0环的一个手段。</p>
-<a id="more"></a>
-
-<h1 id="如何构造调用门"><a href="#如何构造调用门" class="headerlink" title="如何构造调用门"></a>如何构造调用门</h1><img src="/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/1.png">
-
-<ul>
-<li>Segment Selector：提权后的CS段偏移</li>
-<li>Offset in Segment：提权后的EIP</li>
-</ul>
-<h1 id="调用门构造实验"><a href="#调用门构造实验" class="headerlink" title="调用门构造实验"></a>调用门构造实验</h1><p>实验目的：构造调用门，然后高权限执行调用门中指向的函数。</p>
-<p>
-windbg下对GDT表进行更改：<br>
-eq 8003f090 00cf9b00`0000ffff（代码段）<br>
-eq 8003f048 0040ec00`0090100A（调用门，指向代码段)<br>
-</p>
-
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"></span><br><span class="line">__declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">CallGate</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//int 0x3;</span></span><br><span class="line">		retf;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> buf[<span class="number">6</span>] = &#123;<span class="number">0</span>&#125;;     </span><br><span class="line">	buf[<span class="number">4</span>] = <span class="number">0x4B</span>; <span class="comment">//call cs:eip ，eip 随便填，调用门里面已经指定了</span></span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, CallGate);</span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		call fword ptr buf</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="远调用的特点"><a href="#远调用的特点" class="headerlink" title="远调用的特点"></a>远调用的特点</h1><p>call far ，当使用调用门时，就是远调用。<br>远调用，至少要保存4个值：call的返回地址 cs ss esp。<br>只要执行远call，就会切换栈。</p>
-<h1 id="调用门带参数实验"><a href="#调用门带参数实验" class="headerlink" title="调用门带参数实验"></a>调用门带参数实验</h1><p>
-修改调用门描述符：<br>
-eq 8003f048 0040ec01`0090100A</p>
-
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"></span><br><span class="line">__declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">CallGate</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//int 0x3;</span></span><br><span class="line">		retf <span class="number">0x4</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> buf[<span class="number">6</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">	buf[<span class="number">4</span>] = <span class="number">0x4B</span>;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, CallGate);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		push <span class="number">0x88888888</span></span><br><span class="line">		call fword ptr buf</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>栈结构如下：<br><img src="/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/2.png"></p>
-<p>从中可以看出，通过调用门，会有另一套堆栈，同时参数是在中间的部分。</p>
-<h1 id="调用门提权读取高地址内存"><a href="#调用门提权读取高地址内存" class="headerlink" title="调用门提权读取高地址内存"></a>调用门提权读取高地址内存</h1><p>实验目的：通过调用门提权，尝试读取高地址内存。</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> val = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">__declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">CallGate</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="comment">//int 0x3;</span></span><br><span class="line">		pushad;</span><br><span class="line">		pushfd;</span><br><span class="line">		mov eax, dword ptr ds:[<span class="number">0x8003f010</span>];</span><br><span class="line">		mov val, eax;</span><br><span class="line">		popfd;</span><br><span class="line">		popad;</span><br><span class="line">		retf <span class="number">0x4</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> buf[<span class="number">6</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">	buf[<span class="number">4</span>] = <span class="number">0x4B</span>;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, CallGate);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		push <span class="number">0x88888888</span></span><br><span class="line">		call fword ptr buf</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;val: %X\n&quot;</span>, val);</span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>实验结果：<br><img src="/2021/02/02/%E8%B0%83%E7%94%A8%E9%97%A8/3.png"></p>
-<h1 id="调用门的权限检查"><a href="#调用门的权限检查" class="headerlink" title="调用门的权限检查"></a>调用门的权限检查</h1><p>按数值：<br>min(CPL,RPL) &gt;= 门的DPL<br>CPL &lt;= 代码段的DPL</p>
-<p>按权限：<br>max(CPL,RPL) &lt;= 门的DPL<br>CPL &gt;= 代码段的DPL</p>
-]]></content>
-      <categories>
-        <category>Windows内核研究</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>陷阱门与中断门</title>
-    <url>/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/</url>
-    <content><![CDATA[<h1 id="中断的认识"><a href="#中断的认识" class="headerlink" title="中断的认识"></a>中断的认识</h1><p>在 Windows 中并没有使用调用门，但是使用了中断门。<br>中断表（IDT）中有三种中断：</p>
-<ul>
-<li>陷阱门</li>
-<li>中断门</li>
-<li>任务门<a id="more"></a>
-
-</li>
-</ul>
-<p>我们先讲陷阱门和中断门。</p>
-<p>执行中断表的各种门是通过 <code>int </code> 指令。比如著名的断点指令 <code>int 0x3</code></p>
-<h1 id="查看IDT表"><a href="#查看IDT表" class="headerlink" title="查看IDT表"></a>查看IDT表</h1><h2 id="查看IDT地址，和长度。"><a href="#查看IDT地址，和长度。" class="headerlink" title="查看IDT地址，和长度。"></a>查看IDT地址，和长度。</h2><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/1.png">
-
-<h2 id="查看内容"><a href="#查看内容" class="headerlink" title="查看内容"></a>查看内容</h2><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/2.png">
-或者
-<img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/3.png">
-
-<h1 id="中断门描述符"><a href="#中断门描述符" class="headerlink" title="中断门描述符"></a>中断门描述符</h1><p>与之前的调用门类似，但是值得注意的是没有参数。（可以通过寄存器传参）<br><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/4.png"></p>
-<h1 id="构造中断门读高地址内存"><a href="#构造中断门读高地址内存" class="headerlink" title="构造中断门读高地址内存"></a>构造中断门读高地址内存</h1><p>windbg 修改：<br>eq 8003f500 0040ee00`0008100A （0x40100A 函数地址）</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> val = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">_declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">GateFunc</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		pushad;</span><br><span class="line">		mov eax, <span class="number">0x8003f500</span>;</span><br><span class="line">		mov eax, dword ptr ds:[eax];</span><br><span class="line">		mov val, eax;</span><br><span class="line">		popad;</span><br><span class="line">		iretd;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, GateFunc);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">int</span> <span class="number">0x20</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;val: 0x%X\n&quot;</span>, val);</span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>运行结果如下：<br><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/5.png"></p>
-<h1 id="调用门返回与中断返回"><a href="#调用门返回与中断返回" class="headerlink" title="调用门返回与中断返回"></a>调用门返回与中断返回</h1><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/6.png">
-
-<h1 id="中断门使用-retf-返回"><a href="#中断门使用-retf-返回" class="headerlink" title="中断门使用 retf 返回"></a>中断门使用 retf 返回</h1><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;stdafx.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">_declspec(naked) <span class="function"><span class="keyword">void</span> <span class="title">GateFunc</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		pop eax;	<span class="comment">// eip</span></span><br><span class="line">		pop ecx;	<span class="comment">// cs</span></span><br><span class="line">		pop edx;	<span class="comment">// eflag</span></span><br><span class="line"></span><br><span class="line">		push ecx;</span><br><span class="line">		push eax;</span><br><span class="line">		retf;</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;0x%X\n&quot;</span>, GateFunc);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line"></span><br><span class="line">	_asm</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">int</span> <span class="number">0x20</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;success\n&quot;</span>);</span><br><span class="line">	system(<span class="string">&quot;pause&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h1 id="陷阱门描述符"><a href="#陷阱门描述符" class="headerlink" title="陷阱门描述符"></a>陷阱门描述符</h1><img src="/2021/02/08/%E9%99%B7%E9%98%B1%E9%97%A8%E4%B8%8E%E4%B8%AD%E6%96%AD%E9%97%A8/7.png">
-
-<h1 id="中断门与陷阱门的区别"><a href="#中断门与陷阱门的区别" class="headerlink" title="中断门与陷阱门的区别"></a>中断门与陷阱门的区别</h1><p>中断门进入会执行 cli，此时会导致处理器忽略可屏蔽的外部中断，（清楚 EFLAG 的 IF标志）<br>陷阱门就不会。</p>
-]]></content>
-      <categories>
-        <category>Windows内核研究</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>CPU异常记录</title>
-    <url>/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/</url>
-    <content><![CDATA[<h1 id="异常种类"><a href="#异常种类" class="headerlink" title="异常种类"></a>异常种类</h1><ul>
-<li>错误类：CPU在执行当前指令的时候，发生错误。（除零异常等等）</li>
-<li>陷阱类：CPU已经执行完了当前指令，产生异常。（int3 TF单步等等）</li>
-<li>终止类：一般就是不能修复的异常。在内核中就直接蓝屏了，在应用层进程就直接退出。</li>
-</ul>
-<a id="more"></a>
-
-<h1 id="分析除零异常"><a href="#分析除零异常" class="headerlink" title="分析除零异常"></a>分析除零异常</h1><p>当出现除零异常的时候，其会走IDT[0]的中断函数（KiTrap00）。KiTrap00 函数中会把当前环境保存成 _KTRAP_FRAME ，<br>接着调用 CommonDispatchException 分发异常。</p>
-<p>_KTRAP_FRAME 结构如下：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">KTRAP_FRAME</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    ULONG DbgEbp;                                                           <span class="comment">//0x0</span></span><br><span class="line">    ULONG DbgEip;                                                           <span class="comment">//0x4</span></span><br><span class="line">    ULONG DbgArgMark;                                                       <span class="comment">//0x8</span></span><br><span class="line">    ULONG DbgArgPointer;                                                    <span class="comment">//0xc</span></span><br><span class="line">    ULONG TempSegCs;                                                        <span class="comment">//0x10</span></span><br><span class="line">    ULONG TempEsp;                                                          <span class="comment">//0x14</span></span><br><span class="line">    ULONG Dr0;                                                              <span class="comment">//0x18</span></span><br><span class="line">    ULONG Dr1;                                                              <span class="comment">//0x1c</span></span><br><span class="line">    ULONG Dr2;                                                              <span class="comment">//0x20</span></span><br><span class="line">    ULONG Dr3;                                                              <span class="comment">//0x24</span></span><br><span class="line">    ULONG Dr6;                                                              <span class="comment">//0x28</span></span><br><span class="line">    ULONG Dr7;                                                              <span class="comment">//0x2c</span></span><br><span class="line">    ULONG SegGs;                                                            <span class="comment">//0x30</span></span><br><span class="line">    ULONG SegEs;                                                            <span class="comment">//0x34</span></span><br><span class="line">    ULONG SegDs;                                                            <span class="comment">//0x38</span></span><br><span class="line">    ULONG Edx;                                                              <span class="comment">//0x3c</span></span><br><span class="line">    ULONG Ecx;                                                              <span class="comment">//0x40</span></span><br><span class="line">    ULONG Eax;                                                              <span class="comment">//0x44</span></span><br><span class="line">    ULONG PreviousPreviousMode;                                             <span class="comment">//0x48</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_REGISTRATION_RECORD</span>* <span class="title">ExceptionList</span>;</span>                   <span class="comment">//0x4c</span></span><br><span class="line">    ULONG SegFs;                                                            <span class="comment">//0x50</span></span><br><span class="line">    ULONG Edi;                                                              <span class="comment">//0x54</span></span><br><span class="line">    ULONG Esi;                                                              <span class="comment">//0x58</span></span><br><span class="line">    ULONG Ebx;                                                              <span class="comment">//0x5c</span></span><br><span class="line">    ULONG Ebp;                                                              <span class="comment">//0x60</span></span><br><span class="line">    ULONG ErrCode;                                                          <span class="comment">//0x64</span></span><br><span class="line">    ULONG Eip;                                                              <span class="comment">//0x68</span></span><br><span class="line">    ULONG SegCs;                                                            <span class="comment">//0x6c</span></span><br><span class="line">    ULONG EFlags;                                                           <span class="comment">//0x70</span></span><br><span class="line">    ULONG HardwareEsp;                                                      <span class="comment">//0x74</span></span><br><span class="line">    ULONG HardwareSegSs;                                                    <span class="comment">//0x78</span></span><br><span class="line">    ULONG V86Es;                                                            <span class="comment">//0x7c</span></span><br><span class="line">    ULONG V86Ds;                                                            <span class="comment">//0x80</span></span><br><span class="line">    ULONG V86Fs;                                                            <span class="comment">//0x84</span></span><br><span class="line">    ULONG V86Gs;                                                            <span class="comment">//0x88</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>KiTrap00 函数流程图如下：</p>
-<img src="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/1.png">
-
-<p>_EXCEPTION_RECORD 结构如下：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    LONG ExceptionCode;                                  <span class="comment">//异常Code</span></span><br><span class="line">    ULONG ExceptionFlags;                                <span class="comment">//Flags</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">EXCEPTION_RECORD</span>* <span class="title">ExceptionRecord</span>;</span>           <span class="comment">//如果在异常处理中，产生异常，这里就有值了。</span></span><br><span class="line">    VOID* ExceptionAddress;                              <span class="comment">//异常地址。在CommonDispatchException函数中可以得知，异常地址 = EIP</span></span><br><span class="line">    ULONG NumberParameters;                              <span class="comment">//参数个数</span></span><br><span class="line">    ULONG ExceptionInformation[<span class="number">15</span>];                      <span class="comment">//保存参数，最多 15 个参数</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-<p>CommonDispatchException 函数流程图如下：</p>
-<img src="/2021/03/03/CPU%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/2.png">
-]]></content>
-      <categories>
-        <category>Windows内核研究</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>软件模拟异常记录</title>
-    <url>/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/</url>
-    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>软件模拟异常：这个异常不是CPU在执行的时候产生的，而且软件模拟的。C++ 中的 throw 关键字。</p>
-<a id="more"></a>
-
-<h1 id="软件模拟异常"><a href="#软件模拟异常" class="headerlink" title="软件模拟异常"></a>软件模拟异常</h1><h2 id="throw反汇编"><a href="#throw反汇编" class="headerlink" title="throw反汇编"></a>throw反汇编</h2><p>使用 throw 1，抛出异常。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">push        offset __CTA2PAD (004265d4)</span><br><span class="line">lea         eax,[ebp-4]</span><br><span class="line">push        eax</span><br><span class="line">call        __CxxThrowException@8</span><br></pre></td></tr></table></figure>
-<h2 id="CxxThrowException-中调用-RaiseException"><a href="#CxxThrowException-中调用-RaiseException" class="headerlink" title="__CxxThrowException 中调用 RaiseException"></a>__CxxThrowException 中调用 RaiseException</h2><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mov         edx,dword ptr [ebp-20h]</span><br><span class="line">push        edx                     &#x2F;&#x2F;ExceptionCode</span><br><span class="line">call        dword ptr [__imp__RaiseException@16 (0042d1a0)]</span><br></pre></td></tr></table></figure>
-<p>其中作为 RaiseException 的第一个参数（dwExceptionCode）是编译器指定的，并不像CPU异常一样有一个固定的值（除零 C0000094）</p>
-<h2 id="RaiseException-函数分析"><a href="#RaiseException-函数分析" class="headerlink" title="RaiseException 函数分析"></a>RaiseException 函数分析</h2><p>该函数中创建 _EXCEPTION_RECORD 结构，并调用 RtlRaiseException</p>
-<img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/1.png">
-
-<h2 id="RtlRaiseException-函数分析"><a href="#RtlRaiseException-函数分析" class="headerlink" title="RtlRaiseException 函数分析"></a>RtlRaiseException 函数分析</h2><p>该函数中创建 _CONTEXT 结构保存环境，并调用 ZwRaiseException。</p>
-<img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/2.png">
-
-<h2 id="ZwRaiseException-函数分析"><a href="#ZwRaiseException-函数分析" class="headerlink" title="ZwRaiseException 函数分析"></a>ZwRaiseException 函数分析</h2><p>通过系统调用进入内核。ssdt index：0xB5</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mov     eax, 0B5h       ; NtRaiseException</span><br><span class="line">mov     edx, 7FFE0300h</span><br><span class="line">call    dword ptr [edx]</span><br><span class="line">retn    0Ch</span><br></pre></td></tr></table></figure>
-<h2 id="NtRaiseException-函数分析"><a href="#NtRaiseException-函数分析" class="headerlink" title="NtRaiseException 函数分析"></a>NtRaiseException 函数分析</h2><p>该函数的本质是 KiRaiseException。做一些初始化工作后，调用 KiRaiseException。最后通过 KiServiceExit 退出函数。<br><img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/3.png"></p>
-<h2 id="KiRaiseException-函数分析"><a href="#KiRaiseException-函数分析" class="headerlink" title="KiRaiseException 函数分析"></a>KiRaiseException 函数分析</h2><p>在该函数中，做了一些基本的判断。首先，判断先前模式R3，则把 _CONTEXT 和 _EXCEPTION_RECORD 拷贝到R0栈中（在拷贝前做了很多安全判断）；最后把 ExceptionCode 的最高位置0。<br>除零 C0000094 ，最高位为 1，则是CPU异常；而如果最高位为 0，则是软件模拟异常。<br>最后调用 KiDispatchException，至此就同CPU异常一样，进入派发函数。</p>
-<img src="/2021/03/04/%E8%BD%AF%E4%BB%B6%E6%A8%A1%E6%8B%9F%E5%BC%82%E5%B8%B8%E8%AE%B0%E5%BD%95/4.png">
-
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ul>
-<li>CPU 发送异常时，直接在R0，而当软件模拟异常时，则多了一个R3到R0的过程，相对比较复杂。</li>
-<li>无论，CPU异常还是软件模拟异常，最后都会通过 KiDispatchException 函数派发</li>
-<li>唯一区分异常的方式：就是看 ExceptionCode 的最高位，如果为 1，则是CPU异常；如果为 0，则是软件模拟异常</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Windows内核研究</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>内核异常派发</title>
-    <url>/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/</url>
-    <content><![CDATA[<h1 id="KiDispatchException-分析"><a href="#KiDispatchException-分析" class="headerlink" title="KiDispatchException 分析"></a>KiDispatchException 分析</h1><p>无论是内核发生的异常还是用户发生的异常，最终都会走到 KiDispatchException 中派发。</p>
-<a id="more"></a>
-
-<img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/1.png">
-
-<h1 id="主逻辑分析"><a href="#主逻辑分析" class="headerlink" title="主逻辑分析"></a>主逻辑分析</h1><img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/2.png">
-
-<h1 id="RtlDispatchException-分析"><a href="#RtlDispatchException-分析" class="headerlink" title="RtlDispatchException 分析"></a>RtlDispatchException 分析</h1><p>_KPCR + 0x0 中是一个 ExceptionList，里面是一个链表。_EXCEPTION_REGISTRATION_ROCRD 里面有一个异常处理函数。<br><img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/3.png"></p>
-<p>其中，异常处理函数的返回值为 _EXCEPTION_DISPOSITION ，来判断异常处理结果。</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span> _<span class="title">EXCEPTION_DISPOSITION</span> &#123;</span></span><br><span class="line">    ExceptionContinueExecution,   <span class="comment">//异常处理成功</span></span><br><span class="line">    ExceptionContinueSearch,      <span class="comment">//异常没有处理，继续寻找</span></span><br><span class="line">    ExceptionNestedException,     <span class="comment">//二次异常，存在嵌套异常</span></span><br><span class="line">    ExceptionCollidedUnwind       <span class="comment">//发生嵌套的展开</span></span><br><span class="line">&#125; EXCEPTION_DISPOSITION;</span><br></pre></td></tr></table></figure>
-<p>RtlDispatchException 核心就是遍历这张链表，执行处理函数。<br><img src="/2021/03/09/%E5%86%85%E6%A0%B8%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/4.png"></p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>在内核发生异常，处理起来比较简单。不用返回到三环处理。<br>KiDispatchException 的处理逻辑也比较清晰。</p>
-]]></content>
-      <categories>
-        <category>Windows内核研究</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>用户异常派发</title>
-    <url>/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/</url>
-    <content><![CDATA[<p>用户层发生异常时，处理函数在用户层，这时就要从内核层返回用户层处理。相比内核发生异常，处理起来要麻烦一些。<br>异常返回用户层和用户APC返回用户层处理流程大体上相同，只不过，到用户层的EIP不一样。<br>用户层APC：KiUserApcDispatcher，用户层异常：KiUserDispatchDispatcher。</p>
-<a id="more"></a>
-
-<h1 id="KiDispatchException-分析"><a href="#KiDispatchException-分析" class="headerlink" title="KiDispatchException 分析"></a>KiDispatchException 分析</h1><p>我们前面说内核异常派发的时候，已经知道 无论是内核发生的异常还是用户发生的异常，最终都会走到 KiDispatchException 中派发。下面分析一下用户层怎么处理的。</p>
-<img src="/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/1.png">
-
-<h1 id="ntdll-KiUserExceptionDispatcher-分析"><a href="#ntdll-KiUserExceptionDispatcher-分析" class="headerlink" title="ntdll!KiUserExceptionDispatcher 分析"></a>ntdll!KiUserExceptionDispatcher 分析</h1><p>返回到用户层后，发现调用 RtlDispatchException 处理异常。在以前分析内核异常派发的时候，也有一个 RtlDispatchException，但两者是不一样的。一个是内核模块的函数，一个是用户模块（ntdll）的函数。</p>
-<img src="/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/2.png">
-
-<h1 id="ntdll-RtlDispatchException-分析"><a href="#ntdll-RtlDispatchException-分析" class="headerlink" title="ntdll!RtlDispatchException 分析"></a>ntdll!RtlDispatchException 分析</h1><p>用户层异常处理有两种：</p>
-<ul>
-<li>VEH（Vector Exception Handler）</li>
-<li>SEH（Struct Exception Handler）</li>
-</ul>
-<p>VEH 相当于进程，进程中的每个线程都能被它处理。全局变量去查找。<br>SEH 相当于线程，只能处理当前线程。TEP KPCR 第一个成员都是 ExceptionList。（__try __except 就是 SEH）</p>
-<img src="/2021/03/17/%E7%94%A8%E6%88%B7%E5%BC%82%E5%B8%B8%E6%B4%BE%E5%8F%91/3.png">
-]]></content>
-      <categories>
-        <category>Windows内核研究</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>编译器扩展SEH</title>
-    <url>/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/</url>
-    <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>在 Windows 下做C++开发的都知道。VC 编译器有几个异常处理的关键字：__try __except __finally。那么编译器是怎么捕获异常的呢？怎么处理异常的呢？</p>
-<h1 id="环境说明"><a href="#环境说明" class="headerlink" title="环境说明"></a>环境说明</h1><p>因为不同的编译器，可能不一样。大体上来说是一样。</p>
-<ul>
-<li>平台工具集：Visual Studio 2015 - Windows xp</li>
-<li>编译模式：Release</li>
-</ul>
-<a id="more"></a>
-
-<h1 id="try-except-分析"><a href="#try-except-分析" class="headerlink" title="__try __except 分析"></a>__try __except 分析</h1><h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;Windows.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">Exception_Filier</span><span class="params">(EXCEPTION_POINTERS* pExceptionInfo)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">if</span> (pExceptionInfo-&gt;ExceptionRecord-&gt;ExceptionCode == EXCEPTION_INT_DIVIDE_BY_ZERO)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span> EXCEPTION_EXECUTE_HANDLER;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> EXCEPTION_CONTINUE_SEARCH;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	__try</span><br><span class="line">	&#123;</span><br><span class="line">		_asm</span><br><span class="line">		&#123;</span><br><span class="line">			push eax;				<span class="comment">//构造除零异常</span></span><br><span class="line">			push edx;</span><br><span class="line">			mov eax, <span class="number">0x1000</span>;</span><br><span class="line">			mov edx, <span class="number">0</span>;</span><br><span class="line">			idiv edx;</span><br><span class="line">			pop edx;</span><br><span class="line">			pop eax;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	__except (Exception_Filier(GetExceptionInformation()))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;except\n&quot;</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;success\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">	getchar();</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="函数分析"><a href="#函数分析" class="headerlink" title="函数分析"></a>函数分析</h2><p>编译器扩展了 _EXCEPTION_REGISTRATION_RECORD 如下：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">EH3_EXCEPTION_REGISTRATION</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    DWORD Next;</span><br><span class="line">    DWORD ExceptionHandler;</span><br><span class="line">    DWORD ScopeTable;</span><br><span class="line">    DWORD TryLevel;</span><br><span class="line">&#125;_EH3_EXCEPTION_REGISTRATION;</span><br></pre></td></tr></table></figure>
-<p>ScopeTable 结构如下：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">SCOPETABLE_ENTRY</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    DWORD EnclosingLevel;     <span class="comment">//上一级 try 索引。（因为 try 是可以嵌套的。）</span></span><br><span class="line">    DWORD FilterFunc;         <span class="comment">//过滤表达式地址</span></span><br><span class="line">    DWORD HandlerFunc;        <span class="comment">//__except</span></span><br><span class="line">&#125;_SCOPETABLE_ENTRY;</span><br></pre></td></tr></table></figure>
-<p>当一个函数中使用了 try 会在局部变量中开辟 CPPEH_RECORD 结构保存 try 信息：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">CPPEH_RECORD</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    DWORD old_esp;                <span class="comment">//保存旧的esp</span></span><br><span class="line">    EXCEPTION_POINTERS* exc_ptr;</span><br><span class="line">    SCOPETABLE_ENTRY* ScopeTable; <span class="comment">//指向ScopeTable</span></span><br><span class="line">    DWORD TryLevel;               <span class="comment">//当前处在哪个try中</span></span><br><span class="line">&#125;_CPPEH_RECORD;</span><br></pre></td></tr></table></figure>
-<h3 id="main-函数分析"><a href="#main-函数分析" class="headerlink" title="main 函数分析"></a>main 函数分析</h3><img src="/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/2.png">
-
-<h3 id="except-handler3-函数分析"><a href="#except-handler3-函数分析" class="headerlink" title="__except_handler3 函数分析"></a>__except_handler3 函数分析</h3><img src="/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/1.png">
-]]></content>
-      <categories>
-        <category>Windows内核研究</category>
-      </categories>
   </entry>
 </search>
