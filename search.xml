@@ -33,6 +33,28 @@
       </categories>
   </entry>
   <entry>
+    <title>X64 调用约定</title>
+    <url>/2021/09/01/X64-%E8%B0%83%E7%94%A8%E7%BA%A6%E5%AE%9A/</url>
+    <content><![CDATA[<h1 id="知识点"><a href="#知识点" class="headerlink" title="知识点"></a>知识点</h1><ul>
+<li>X64 只有一种调用约定，__cdecl __stdcall __fastcall 修饰符将被编译器忽略</li>
+<li>调用方要负责分配栈空间，也要清理参数所用的栈空间</li>
+<li>前 4 参数使用 rcx edx r8 r9 来传递参数（这点很像 __fastcall）</li>
+<li>即使使用寄存器传递参数，也要开辟栈空间</li>
+<li>对于不定长参数（类似 printf 这类函数），调用前至少分配 4 个参数的栈空间</li>
+<li>易变寄存器：rax rcx rdx r8 r9 r10 r11</li>
+<li>push pop 指令仅用来保存非易变寄存器，其他栈指针操作显式写寄存器 RSP 来实现</li>
+<li>进入 call 之前 rsp 要满足 0x10 字节对齐</li>
+<li>通常不使用 rbp 寻址栈内存，所以 rsp 在函数帧种尽量保持平衡（一次性分配局部变量和参数空间）</li>
+</ul>
+<h1 id="叶函数（X64中新增一种概念）"><a href="#叶函数（X64中新增一种概念）" class="headerlink" title="叶函数（X64中新增一种概念）"></a>叶函数（X64中新增一种概念）</h1><ul>
+<li>叶函数：既一个函数没有调用任何子函数，不修改栈指针（开辟栈空间等等），不使用SEH，那么这个函数就可以称为叶函数</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Windows逆向</category>
+      </categories>
+  </entry>
+  <entry>
     <title>让EXE也拥有DllMain</title>
     <url>/2021/04/02/%E8%AE%A9EXE%E4%B9%9F%E6%8B%A5%E6%9C%89DllMain/</url>
     <content><![CDATA[<h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>众所周知，DllMain 有几个神奇的力量</p>
