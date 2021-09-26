@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://mifeng.cyou/2021/09/26/no-Jcc/</loc>
+    
+    <lastmod>2021-09-26</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://mifeng.cyou/tools/index.html</loc>
     
     <lastmod>2021-09-10</lastmod>
@@ -144,7 +151,7 @@
 
   <url>
     <loc>https://mifeng.cyou/</loc>
-    <lastmod>2021-09-10</lastmod>
+    <lastmod>2021-09-26</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -154,21 +161,21 @@
   
   <url>
     <loc>https://mifeng.cyou/categories/Windows%E5%86%85%E6%A0%B8%E7%A0%94%E7%A9%B6/</loc>
-    <lastmod>2021-09-10</lastmod>
+    <lastmod>2021-09-26</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://mifeng.cyou/categories/ESP8266/</loc>
-    <lastmod>2021-09-10</lastmod>
+    <lastmod>2021-09-26</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
     <loc>https://mifeng.cyou/categories/Windows%E9%80%86%E5%90%91/</loc>
-    <lastmod>2021-09-10</lastmod>
+    <lastmod>2021-09-26</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>

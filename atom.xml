@@ -6,7 +6,7 @@
   <link href="https://mifeng.cyou/atom.xml" rel="self"/>
   
   <link href="https://mifeng.cyou/"/>
-  <updated>2021-09-01T07:49:23.442Z</updated>
+  <updated>2021-09-26T01:59:35.600Z</updated>
   <id>https://mifeng.cyou/</id>
   
   <author>
@@ -15,6 +15,23 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>no_Jcc</title>
+    <link href="https://mifeng.cyou/2021/09/26/no-Jcc/"/>
+    <id>https://mifeng.cyou/2021/09/26/no-Jcc/</id>
+    <published>2021-09-26T09:56:05.000Z</published>
+    <updated>2021-09-26T01:59:35.600Z</updated>
+    
+    
+    <summary type="html">&lt;p&gt;如何不使用 JCC，做判断跳转？&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="Windows逆向" scheme="https://mifeng.cyou/categories/Windows%E9%80%86%E5%90%91/"/>
+    
+    
+  </entry>
   
   <entry>
     <title>X64 调用约定</title>
