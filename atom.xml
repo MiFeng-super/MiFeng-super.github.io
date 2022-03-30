@@ -6,7 +6,7 @@
   <link href="https://mifeng.cyou/atom.xml" rel="self"/>
   
   <link href="https://mifeng.cyou/"/>
-  <updated>2022-03-30T03:20:49.982Z</updated>
+  <updated>2022-03-30T03:24:13.714Z</updated>
   <id>https://mifeng.cyou/</id>
   
   <author>
@@ -21,15 +21,15 @@
     <link href="https://mifeng.cyou/2022/03/30/ProcessInstrumentationCallback/"/>
     <id>https://mifeng.cyou/2022/03/30/ProcessInstrumentationCallback/</id>
     <published>2022-03-30T11:18:30.000Z</published>
-    <updated>2022-03-30T03:20:49.982Z</updated>
+    <updated>2022-03-30T03:24:13.714Z</updated>
     
     
     <summary type="html">&lt;h1 id=&quot;写在前面&quot;&gt;&lt;a href=&quot;#写在前面&quot; class=&quot;headerlink&quot; title=&quot;写在前面&quot;&gt;&lt;/a&gt;写在前面&lt;/h1&gt;&lt;p&gt;Instrumentation Callback 可以回调到所有 sys call exit&lt;/p&gt;</summary>
     
     
     
+    <category term="Windows逆向" scheme="https://mifeng.cyou/categories/Windows%E9%80%86%E5%90%91/"/>
     
-    <category term="Windows逆向" scheme="https://mifeng.cyou/tags/Windows%E9%80%86%E5%90%91/"/>
     
   </entry>
   
@@ -38,15 +38,15 @@
     <link href="https://mifeng.cyou/2022/03/30/%E5%88%A9%E7%94%A8CPU%E6%8C%87%E4%BB%A4%E5%8A%A0%E9%80%9FCRC32/"/>
     <id>https://mifeng.cyou/2022/03/30/%E5%88%A9%E7%94%A8CPU%E6%8C%87%E4%BB%A4%E5%8A%A0%E9%80%9FCRC32/</id>
     <published>2022-03-30T09:30:13.000Z</published>
-    <updated>2022-03-30T01:32:29.939Z</updated>
+    <updated>2022-03-30T03:24:20.212Z</updated>
     
     
     <summary type="html">&lt;h1 id=&quot;直接上代码&quot;&gt;&lt;a href=&quot;#直接上代码&quot; class=&quot;headerlink&quot; title=&quot;直接上代码&quot;&gt;&lt;/a&gt;直接上代码&lt;/h1&gt;</summary>
     
     
     
+    <category term="Windows逆向" scheme="https://mifeng.cyou/categories/Windows%E9%80%86%E5%90%91/"/>
     
-    <category term="Windows逆向" scheme="https://mifeng.cyou/tags/Windows%E9%80%86%E5%90%91/"/>
     
   </entry>
   
