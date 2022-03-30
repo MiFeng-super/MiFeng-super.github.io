@@ -6,7 +6,7 @@
   <link href="https://mifeng.cyou/atom.xml" rel="self"/>
   
   <link href="https://mifeng.cyou/"/>
-  <updated>2022-03-30T01:32:29.939Z</updated>
+  <updated>2022-03-30T03:20:49.982Z</updated>
   <id>https://mifeng.cyou/</id>
   
   <author>
@@ -15,6 +15,23 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>ProcessInstrumentationCallback</title>
+    <link href="https://mifeng.cyou/2022/03/30/ProcessInstrumentationCallback/"/>
+    <id>https://mifeng.cyou/2022/03/30/ProcessInstrumentationCallback/</id>
+    <published>2022-03-30T11:18:30.000Z</published>
+    <updated>2022-03-30T03:20:49.982Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;写在前面&quot;&gt;&lt;a href=&quot;#写在前面&quot; class=&quot;headerlink&quot; title=&quot;写在前面&quot;&gt;&lt;/a&gt;写在前面&lt;/h1&gt;&lt;p&gt;Instrumentation Callback 可以回调到所有 sys call exit&lt;/p&gt;</summary>
+    
+    
+    
+    
+    <category term="Windows逆向" scheme="https://mifeng.cyou/tags/Windows%E9%80%86%E5%90%91/"/>
+    
+  </entry>
   
   <entry>
     <title>利用CPU指令加速CRC32</title>

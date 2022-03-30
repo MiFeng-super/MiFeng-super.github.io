@@ -24,20 +24,21 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"mifeng.cyou","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}};
   </script>
-<meta name="description" content="做笔记, 并尝试记录生活">
-<meta property="og:type" content="website">
-<meta property="og:title" content="标签">
-<meta property="og:url" content="https://mifeng.cyou/tags/index.html">
+<meta name="description" content="写在前面Instrumentation Callback 可以回调到所有 sys call exit">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ProcessInstrumentationCallback">
+<meta property="og:url" content="https://mifeng.cyou/2022/03/30/ProcessInstrumentationCallback/index.html">
 <meta property="og:site_name" content="MiFeng&#39;s Blog">
-<meta property="og:description" content="做笔记, 并尝试记录生活">
+<meta property="og:description" content="写在前面Instrumentation Callback 可以回调到所有 sys call exit">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-01-26T15:57:29.000Z">
-<meta property="article:modified_time" content="2021-01-26T07:59:34.402Z">
+<meta property="article:published_time" content="2022-03-30T11:18:30.000Z">
+<meta property="article:modified_time" content="2022-03-30T03:20:49.982Z">
 <meta property="article:author" content="蜜蜂">
+<meta property="article:tag" content="Windows逆向">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://mifeng.cyou/tags/">
+<link rel="canonical" href="https://mifeng.cyou/2022/03/30/ProcessInstrumentationCallback/">
 
 
 <script class="page-configurations">
@@ -45,12 +46,11 @@
   CONFIG.page = {
     sidebar: "",
     isHome : false,
-    isPost : false,
+    isPost : true,
     lang   : 'zh-CN'
   };
 </script>
-<title>标签 | MiFeng's Blog
-</title>
+<title>ProcessInstrumentationCallback | MiFeng's Blog</title>
   
 
 
@@ -179,7 +179,7 @@
 
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           文章目录
@@ -192,6 +192,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -261,43 +262,146 @@
 </noscript>
 
 
-    <div class="main-inner page posts-expand">
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
   
   
 
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://mifeng.cyou/2022/03/30/ProcessInstrumentationCallback/">
 
-    
-    
-    
-    <div class="post-block" lang="zh-CN"><header class="post-header">
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="蜜蜂">
+      <meta itemprop="description" content="做笔记, 并尝试记录生活">
+    </span>
 
-<h1 class="post-title" itemprop="name headline">标签
-</h1>
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="MiFeng's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ProcessInstrumentationCallback
+        </h1>
 
-<div class="post-meta-container">
-</div>
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
 
-</header>
+      <time title="创建时间：2022-03-30 11:18:30" itemprop="dateCreated datePublished" datetime="2022-03-30T11:18:30Z">2022-03-30</time>
+	</span>
 
-      
-      
-      <div class="post-body"><div class="tag-cloud">
-  <div class="tag-cloud-title">
-    目前共计 1 个标签
-  </div>
-  <div class="tag-cloud-tags">
-    <a href="/tags/Windows%E9%80%86%E5%90%91/" style="font-size: 12px;" class="tag-cloud-0">Windows逆向</a>
-  </div>
-</div>
-
+  
       </div>
-      
-      
-      
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>Instrumentation Callback 可以回调到所有 sys call exit</p>
+<a id="more"></a>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;atomic&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;ntdll.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> comment(lib, <span class="meta-string">&quot;./ntdll_x64.lib&quot;</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">PROCESS_INSTRUMENTATION_CALLBACK_INFORMATION</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	ULONG Version;</span><br><span class="line">	ULONG Reserved;</span><br><span class="line">	PVOID Callback;</span><br><span class="line">&#125; PROCESS_INSTRUMENTATION_CALLBACK_INFORMATION, * PPROCESS_INSTRUMENTATION_CALLBACK_INFORMATION;</span><br><span class="line"></span><br><span class="line"><span class="built_in">std</span>::atomic&lt;<span class="keyword">uint32_t</span>&gt; count;</span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function"><span class="keyword">void</span> <span class="title">InstrumentationHook</span><span class="params">()</span></span>;</span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function"><span class="keyword">void</span> <span class="title">InstrumentationCHook</span><span class="params">(<span class="keyword">uintptr_t</span> Func, <span class="keyword">uintptr_t</span> ReturnValue)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	count++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	PROCESS_INSTRUMENTATION_CALLBACK_INFORMATION nirvana;</span><br><span class="line">	nirvana.Callback = (PVOID)(ULONG_PTR)InstrumentationHook;</span><br><span class="line">	nirvana.Version = <span class="number">0</span>;</span><br><span class="line">	nirvana.Reserved = <span class="number">0</span>;</span><br><span class="line">	NtSetInformationProcess(GetCurrentProcess(), ProcessInstrumentationCallback, &amp;nirvana, <span class="keyword">sizeof</span>(nirvana));</span><br><span class="line">	getchar();</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;count: %d&quot;</span>, count.load());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">include ksamd64.inc</span><br><span class="line"></span><br><span class="line">extern InstrumentationCHook:proc</span><br><span class="line"></span><br><span class="line">NESTED_ENTRY InstrumentationHook, TEXT</span><br><span class="line">		</span><br><span class="line">		</span><br><span class="line"></span><br><span class="line">		 mov r11, rax</span><br><span class="line"></span><br><span class="line">		 GENERATE_EXCEPTION_FRAME Rbp</span><br><span class="line">		 mov rcx, r10</span><br><span class="line">		 mov rdx, r11</span><br><span class="line">		 call InstrumentationCHook</span><br><span class="line">		 RESTORE_EXCEPTION_STATE Rbp</span><br><span class="line"></span><br><span class="line">		 mov rax, r11</span><br><span class="line">		 jmp r10</span><br><span class="line"></span><br><span class="line">NESTED_END InstrumentationHook, TEXT</span><br><span class="line"></span><br><span class="line">end</span><br></pre></td></tr></table></figure>
     </div>
 
     
     
+    
+      
+  <div class="popular-posts-header">相关文章推荐</div>
+  <ul class="popular-posts">
+    <li class="popular-posts-item">
+      <div class="popular-posts-title"><a href="\2022\03\30\利用CPU指令加速CRC32\" rel="bookmark">利用CPU指令加速CRC32</a></div>
+    </li>
+  </ul>
+
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>蜜蜂
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://mifeng.cyou/2022/03/30/ProcessInstrumentationCallback/" title="ProcessInstrumentationCallback">https://mifeng.cyou/2022/03/30/ProcessInstrumentationCallback/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="followme">
+  <span>欢迎关注我的其它发布渠道</span>
+
+  <div class="social-list">
+
+      <div class="social-item">
+        <a target="_blank" class="social-link" href="/atom.xml">
+          <span class="icon">
+            <i class="fa fa-rss"></i>
+          </span>
+
+          <span class="label">RSS</span>
+        </a>
+      </div>
+  </div>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/Windows%E9%80%86%E5%90%91/" rel="tag"># Windows逆向</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/03/30/%E5%88%A9%E7%94%A8CPU%E6%8C%87%E4%BB%A4%E5%8A%A0%E9%80%9FCRC32/" rel="prev" title="利用CPU指令加速CRC32">
+                  <i class="fa fa-chevron-left"></i> 利用CPU指令加速CRC32
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
 
 
 
