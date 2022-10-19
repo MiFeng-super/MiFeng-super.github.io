@@ -135,7 +135,7 @@
     <link href="https://mifeng.cyou/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/"/>
     <id>https://mifeng.cyou/2021/03/30/%E7%BC%96%E8%AF%91%E5%99%A8%E6%89%A9%E5%B1%95SEH/</id>
     <published>2021-03-30T08:18:35.000Z</published>
-    <updated>2021-03-30T02:15:07.648Z</updated>
+    <updated>2021-03-30T02:17:41.027Z</updated>
     
     
     <summary type="html">&lt;h1 id=&quot;写在前面&quot;&gt;&lt;a href=&quot;#写在前面&quot; class=&quot;headerlink&quot; title=&quot;写在前面&quot;&gt;&lt;/a&gt;写在前面&lt;/h1&gt;&lt;p&gt;在 Windows 下做C++开发的都知道。VC 编译器有几个异常处理的关键字：__try __except __finally。那么编译器是怎么捕获异常的呢？怎么处理异常的呢？&lt;/p&gt;
